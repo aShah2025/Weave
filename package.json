@@ -1,9 +1,16 @@
 {
   "name": "weave",
-  "version": "0.1.0",
-  "description": "Agentic video editor: describe the edit, Claude plans and executes it with ffmpeg.",
+  "version": "0.2.0",
+  "description": "AI video editor with a CapCut/Resolve-style studio that joins Slack/Discord via Switch",
   "type": "module",
-  "bin": { "weave": "bin/weave.js" },
-  "scripts": { "test": "node --test test/*.test.js" },
-  "engines": { "node": ">=20" }
+  "bin": {
+    "weave": "bin/weave.js"
+  },
+  "scripts": {
+    "start": "node bin/weave.js studio",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=22"
+  }
 }

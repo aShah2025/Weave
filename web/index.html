@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Weave Studio</title>
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <div class="brand"><img src="/icon.svg" alt=""><span>weave</span></div>
+    <input id="projName" class="proj-name" spellcheck="false" title="Project name">
+    <div class="top-mid">
+      <button class="icon-btn" id="undoBtn" title="Undo (⌘Z)" data-icon="undo"></button>
+      <button class="icon-btn" id="redoBtn" title="Redo (⇧⌘Z)" data-icon="redo"></button>
+      <span class="sep"></span>
+      <select id="aspectSel" title="Aspect ratio"></select>
+      <span id="saveState" class="muted small"></span>
+    </div>
+    <div class="top-right">
+      <button class="pill" id="switchPill" title="Switch: Slack / Discord / Teams"><span class="dot"></span><span class="lbl">Switch</span></button>
+      <button class="icon-btn" id="settingsBtn" title="Settings" data-icon="gear"></button>
+      <button class="btn primary" id="exportBtn"><i data-icon="export"></i>Export</button>
+    </div>
+  </header>
+
+  <aside class="left">
+    <nav class="rail">
+      <button class="rail-btn active" data-tab="media"><i data-icon="media"></i><span>Media</span></button>
+      <button class="rail-btn" data-tab="audio"><i data-icon="music"></i><span>Audio</span></button>
+      <button class="rail-btn" data-tab="text"><i data-icon="text"></i><span>Text</span></button>
+      <button class="rail-btn" data-tab="transitions"><i data-icon="transition"></i><span>Transitions</span></button>
+      <button class="rail-btn" data-tab="looks"><i data-icon="color"></i><span>Looks</span></button>
+    </nav>
+    <div class="panel-body" id="leftBody">
+      <section data-pane="media" class="pane active">
+        <div class="pane-head"><h3>Media</h3><button class="btn sm" id="importBtn"><i data-icon="plus"></i>Import</button></div>
+        <label class="dropzone" id="dropzone"><input type="file" id="fileInput" multiple accept="video/*,audio/*,image/*" hidden><i data-icon="upload"></i><span>Drop footage, music or images<br><small>or click to browse</small></span></label>
+        <div class="media-grid" id="mediaGrid"></div>
+      </section>
+      <section data-pane="audio" class="pane">
+        <div class="pane-head"><h3>Audio</h3></div>
+        <p class="hint">Audio files in your library. Drag onto the music track, or click <b>+</b> to drop at the playhead. Turn on <b>Duck</b> in the inspector to dip music under dialogue.</p>
+        <div class="list" id="audioList"></div>
+      </section>
+      <section data-pane="text" class="pane">
+        <div class="pane-head"><h3>Text</h3></div>
+        <div class="text-presets" id="textPresets"></div>
+      </section>
+      <section data-pane="transitions" class="pane">
+        <div class="pane-head"><h3>Transitions</h3></div>
+        <p class="hint">Select a clip, then pick a transition into it. <b>Shift-click</b> applies to every cut.</p>
+        <div class="tile-grid" id="transGrid"></div>
+      </section>
+      <section data-pane="looks" class="pane">
+        <div class="pane-head"><h3>Looks</h3></div>
+        <p class="hint">One-click grades. <b>Shift-click</b> grades every clip.</p>
+        <div class="tile-grid looks" id="looksGrid"></div>
+      </section>
+    </div>
+  </aside>
+
+  <main class="viewer">
+    <div class="stage-wrap" id="stageWrap">
+      <div class="stage" id="stage">
+        <div class="videos" id="videos"></div>
+        <div class="fade-layer" id="fadeLayer"></div>
+        <div class="text-layer" id="textLayer"></div>
+        <div class="empty-stage" id="emptyStage"><i data-icon="film"></i><p>Import media and drag it to the timeline<br>— or ask the AI to build the edit.</p></div>
+      </div>
+    </div>
+    <div class="transport">
+      <span class="tc" id="tcCur">00:00:00</span>
+      <div class="transport-mid">
+        <button class="icon-btn" id="toStart" title="Go to start (Home)" data-icon="skipback"></button>
+        <button class="icon-btn" id="prevFrame" title="Back 1 frame (←)" data-icon="stepback"></button>
+        <button class="play-btn" id="playBtn" title="Play / Pause (Space)" data-icon="play"></button>
+        <button class="icon-btn" id="nextFrame" title="Forward 1 frame (→)" data-icon="stepfwd"></button>
+        <button class="icon-btn" id="toEnd" title="Go to end (End)" data-icon="skipfwd"></button>
+      </div>
+      <span class="tc muted" id="tcDur">00:00:00</span>
+      <button class="icon-btn" id="muteBtn" title="Mute preview" data-icon="volume"></button>
+      <button class="icon-btn" id="fullBtn" title="Fullscreen" data-icon="expand"></button>
+    </div>
+  </main>
+
+  <aside class="right">
+    <div class="tabs">
+      <button class="tab active" data-rtab="inspector">Inspector</button>
+      <button class="tab" data-rtab="ai"><i data-icon="sparkle"></i>AI Editor</button>
+      <button class="tab" data-rtab="switch"><i data-icon="chat"></i>Switch</button>
+    </div>
+    <section class="rpane active" data-rpane="inspector" id="inspector"></section>
+    <section class="rpane" data-rpane="ai">
+      <div class="chat" id="chat"></div>
+      <div class="chips" id="chips"></div>
+      <form class="composer" id="composer">
+        <textarea id="prompt" rows="2" placeholder="Describe an edit… e.g. “cut the dead air, add captions, make it 9:16 with a cinematic look”"></textarea>
+        <div class="composer-row">
+          <span class="muted small" id="modelLbl"></span>
+          <button type="button" class="btn sm ghost" id="stopBtn" hidden><i data-icon="stop"></i>Stop</button>
+          <button type="submit" class="btn sm ai" id="sendBtn"><i data-icon="sparkle"></i>Edit</button>
+        </div>
+      </form>
+    </section>
+    <section class="rpane" data-rpane="switch" id="switchPane"></section>
+  </aside>
+
+  <section class="timeline" id="timeline">
+    <div class="tl-toolbar">
+      <div class="tool-group">
+        <button class="icon-btn tool active" data-tool="select" title="Select (V)" data-icon="cursor"></button>
+        <button class="icon-btn tool" data-tool="razor" title="Razor (B)" data-icon="scissors"></button>
+        <span class="sep"></span>
+        <button class="icon-btn" id="splitBtn" title="Split at playhead (S)" data-icon="split"></button>
+        <button class="icon-btn" id="deleteBtn" title="Delete selection (⌫)" data-icon="trash"></button>
+        <button class="icon-btn" id="dupBtn" title="Duplicate (⌘D)" data-icon="copy"></button>
+        <span class="sep"></span>
+        <button class="icon-btn toggle active" id="snapBtn" title="Snapping (N)" data-icon="magnet"></button>
+      </div>
+      <div class="tool-group">
+        <span class="muted small" id="selInfo"></span>
+      </div>
+      <div class="tool-group">
+        <button class="icon-btn" id="zoomOut" title="Zoom out (-)" data-icon="minus"></button>
+        <input type="range" id="zoom" min="0" max="100" value="40">
+        <button class="icon-btn" id="zoomIn" title="Zoom in (+)" data-icon="plus"></button>
+        <button class="icon-btn" id="zoomFit" title="Fit timeline (⇧Z)" data-icon="fit"></button>
+      </div>
+    </div>
+    <div class="tl-body">
+      <div class="track-heads">
+        <div class="ruler-head"></div>
+        <div class="th th-text"><i data-icon="text"></i>T1</div>
+        <div class="th th-video"><i data-icon="film"></i>V1</div>
+        <div class="th th-audio"><i data-icon="music"></i>A1</div>
+      </div>
+      <div class="tl-scroll" id="tlScroll">
+        <div class="tl-inner" id="tlInner">
+          <div class="ruler" id="ruler"></div>
+          <div class="track text-track" id="textTrack"></div>
+          <div class="track video-track" id="videoTrack"></div>
+          <div class="track audio-track" id="audioTrack"></div>
+          <div class="playhead" id="playhead"><div class="ph-head"></div></div>
+          <div class="snap-line" id="snapLine"></div>
+          <div class="drop-marker" id="dropMarker"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="modal" id="exportModal" hidden>
+  <div class="dialog">
+    <header><h2>Export</h2><button class="icon-btn" data-close data-icon="x"></button></header>
+    <div class="dialog-body">
+      <div class="field"><label>File name</label><input id="expName"></div>
+      <div class="field-row">
+        <div class="field"><label>Resolution</label><div id="expRes" class="ro"></div></div>
+        <div class="field"><label>Quality</label><select id="expQuality"><option value="medium">Good (small file)</option><option value="high" selected>High</option><option value="max">Maximum</option></select></div>
+      </div>
+      <div class="progress" id="expProgress" hidden><div class="bar"></div><span></span></div>
+      <div id="expResult"></div>
+    </div>
+    <footer>
+      <button class="btn ghost" id="expPreview">Quick preview</button>
+      <button class="btn ghost" id="expCancel" hidden>Cancel</button>
+      <button class="btn primary" id="expGo"><i data-icon="export"></i>Export MP4</button>
+    </footer>
+  </div>
+</div>
+
+<div class="modal" id="settingsModal" hidden>
+  <div class="dialog">
+    <header><h2>Settings</h2><button class="icon-btn" data-close data-icon="x"></button></header>
+    <div class="dialog-body">
+      <div class="field"><label>Anthropic API key</label><input id="setKey" type="password" placeholder="sk-ant-…  (stored locally in .weave/config.json)" autocomplete="off"><small class="muted" id="keyState"></small></div>
+      <div class="field"><label>AI model</label>
+        <select id="setModel">
+          <option value="claude-opus-5-5">Claude Opus 5.5 — best edits</option>
+          <option value="claude-sonnet-5-5">Claude Sonnet 5.5 — fast + smart</option>
+          <option value="claude-haiku-5-5">Claude Haiku 5.5 — fastest</option>
+        </select>
+      </div>
+      <div class="kbd-help">
+        <h4>Shortcuts</h4>
+        <div><kbd>Space</kbd> play/pause</div><div><kbd>J</kbd><kbd>K</kbd><kbd>L</kbd> shuttle</div><div><kbd>←</kbd><kbd>→</kbd> frame step</div>
+        <div><kbd>S</kbd> split at playhead</div><div><kbd>B</kbd> razor · <kbd>V</kbd> select</div><div><kbd>⌫</kbd> ripple delete</div>
+        <div><kbd>⌘Z</kbd> undo · <kbd>⇧⌘Z</kbd> redo</div><div><kbd>⌘D</kbd> duplicate</div><div><kbd>+</kbd><kbd>-</kbd> zoom · <kbd>⇧Z</kbd> fit</div>
+      </div>
+    </div>
+    <footer><button class="btn primary" id="setSave">Save</button></footer>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+<script type="module" src="/js/app.js"></script>
+</body>
+</html>
