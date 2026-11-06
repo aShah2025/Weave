@@ -1,0 +1,5 @@
+node_modules/
+*.mp4
+*.mov
+weave.project.json
+.DS_Store
