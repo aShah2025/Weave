@@ -1,0 +1,6 @@
+Hi, I'm Sam, and um, today I want to show you how our team ships a product video in one afternoon. [[slnc 1800]]
+First, the problem. Every video we make goes through five rounds of notes, and those notes live in email, in chat, and in somebody's head. [[slnc 1500]]
+So, uh, here is what we changed. We put the editor and the reviewers in one room, and every note lands next to the cut it is about. [[slnc 2200]]
+Now let's talk about pricing. Our plan costs twelve dollars a month, and the annual plan costs one hundred dollars a year. Pricing is the part legal keeps changing. [[slnc 1600]]
+Next, the results. Our last launch video took four hours instead of two weeks, and nobody had to ask which version was the latest one. [[slnc 1400]]
+Okay, that's it. If you want to try this, the link is in the description. Thanks for watching.

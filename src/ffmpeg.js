@@ -67,6 +67,12 @@ export async function detectScenes(file, threshold = 0.3) {
   return [...log.matchAll(/pts_time:([\d.]+)/g)].map((m) => +parseFloat(m[1]).toFixed(2));
 }
 
+// Local speech-to-text, for notes that name a topic ("cut the pricing part"). Needs `uv` on PATH.
+export async function transcribe(file) {
+  const { stdout } = await exec('uv', ['run', '--quiet', path.join(HERE, '..', 'scripts', 'transcribe.py'), file], { maxBuffer: 64 * 1024 * 1024 });
+  return JSON.parse(stdout);
+}
+
 // Integrated loudness and peak, so the agent can level audio.
 export async function loudness(file) {
   const log = await run('ffmpeg', ['-hide_banner', '-nostats', '-i', file, '-vn', '-af', 'ebur128=peak=true', '-f', 'null', '-']);

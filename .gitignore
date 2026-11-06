@@ -8,3 +8,5 @@ demo/
 exports/
 .DS_Store
 .claude/
+.env
+.env.*

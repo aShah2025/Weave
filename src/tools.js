@@ -16,6 +16,7 @@ export const toolDefs = [
   { name: 'probe_media', description: 'Get duration, resolution, fps and audio presence of a media file.', input_schema: obj({ path: str('Media file path') }, ['path']) },
   { name: 'detect_silence', description: 'Find silent spans (source seconds) in a file. Useful for cutting dead air / pauses.', input_schema: obj({ path: str('Media file path'), noise_db: num('Silence threshold dB, default -35'), min_duration: num('Minimum silence seconds, default 0.5') }, ['path']) },
   { name: 'detect_scenes', description: 'Find scene-change timestamps (source seconds) in a file.', input_schema: obj({ path: str('Media file path'), threshold: num('0..1 sensitivity, default 0.3 (lower = more cuts)') }, ['path']) },
+  { name: 'transcribe', description: 'Get timestamped speech segments (source seconds) for a file. Use this to find what was said where, for notes that name a topic.', input_schema: obj({ path: str('Media file path') }, ['path']) },
   { name: 'measure_loudness', description: 'Measure integrated loudness (LUFS) and true peak of a file, to level clip volumes.', input_schema: obj({ path: str('Media file path') }, ['path']) },
   { name: 'view_frames', description: 'Look at still frames from a source file. Returns images. Use to understand content, pick shots, and verify renders.', input_schema: obj({ path: str('Media file path (a source, or a rendered output)'), times: { type: 'array', items: { type: 'number' }, description: 'Timestamps in seconds (max 8)' } }, ['path', 'times']) },
   { name: 'get_timeline', description: 'Return the current timeline: video clips (source + timeline ranges, color, transitions), music track, and text overlays.', input_schema: obj({}) },
@@ -73,6 +74,7 @@ export function createToolbox(project, { cwd = process.cwd(), exportsDir = path.
       return { duration: info.duration, silences: s.map((x) => ({ ...x, end: x.end ?? info.duration })) };
     },
     detect_scenes: async ({ path: p, threshold }) => ({ cuts: await F.detectScenes(abs(p), threshold) }),
+    transcribe: async ({ path: p }) => ({ segments: await F.transcribe(abs(p)) }),
     measure_loudness: async ({ path: p }) => F.loudness(abs(p)),
     view_frames: async ({ path: p, times }) => {
       const file = abs(p);
