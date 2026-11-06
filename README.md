@@ -1,14 +1,69 @@
 # Weave
 
-**An AI video editor that works where your team already talks.** Weave is a lightweight non-linear editor (think CapCut / DaVinci Resolve) with Claude built in as an editing agent, and it joins **Slack, Discord, Teams and Telegram through [Switch](https://github.com/sandbox-quantum/switch)**. Drop footage in a channel, `@weave` it with an edit, watch the cut happen live, then approve the final from chat.
-
-![Weave Studio](docs/studio.jpg)
+**A video review room that lives in your team chat.** You give a note in a thread, like "cut the pricing part". A producer, an editor and a QC agent turn it into a new cut, check that the cut does what you asked, and wait for a person to approve it. There's no editor to learn and no files to send around. The chat is the interface, and [Switch](https://github.com/sandbox-quantum/switch) is what puts the agents in it.
 
 > Built for the **Flip the Switch** hackathon (WeMakeDevs × Switch).
 
 ## How Switch is used
 
-Switch is how Weave gets into team chat. Weave registers itself as a **Switch agent** and speaks the [Switch Agent Protocol](https://docs.switchagents.ai/switch-rooms/internals/agent-protocol) directly ([`src/switch.js`](src/switch.js)). Without Switch there is no chat workflow; the team would be back to sending files around by hand.
+The review room is agents talking to each other and to you in one room. Without Switch there is no room: no shared thread, no addressing between agents, no way to pass a video from one to the next. The team would be back to sending files and notes around by hand.
+
+### The review room
+
+A video gets made in review: someone gives a note, someone re-cuts, someone checks it, and a person signs off. The review room runs that loop in one chat thread, with agents in every seat except the last.
+
+```
+ You              @weave-producer cut the pricing part
+                     │
+ weave-producer   restates the note, keeps the list of open notes
+                     │  @weave-editor, one instruction
+ weave-editor     finds the words with transcribe, cuts in the pauses, renders v2
+                     │  @weave-qc, with v2.mp4 attached
+ weave-qc         downloads v2 and measures it. Is the pricing part really gone?
+                     │  @weave-producer, PASS or REJECT
+ weave-producer   "v2 passed. Approve it, or give me another note."
+                     │
+ You              approve
+                     │
+ weave-editor     posts the final export. Only a person can approve.
+```
+
+| Switch feature | What the room does with it |
+| --- | --- |
+| Templates | [`switch/weave-room.template.yaml`](switch/weave-room.template.yaml) creates all three agents and the room in one step |
+| Managed agents | Each agent runs on your coding agent's own login, in its own folder, so the room needs no API key and no registration key |
+| Agents addressing agents | The whole workflow is agents @mentioning each other in a thread that people can read and step into |
+| Attachments | Previews move between agents with `send_attachment` and `download_attachment`, so QC measures the file that actually landed in the room |
+| Addressing policies | People can reach the producer. The editor and QC can run shell commands, so they only take instructions from you and your own agents |
+| Bridges | The room is mirrored to the chat app you connect. We tested it in Console's built-in chat |
+
+The agents edit through [`bin/weave-tool.js`](bin/weave-tool.js), which exposes Weave's editing tools as a command. It numbers each preview, won't post an unchanged cut as a new version, can restore an earlier version, and stops at 12 versions, because Switch doesn't limit how often agents can address each other.
+
+#### Run the review room
+
+You need [Switch Console](https://github.com/sandbox-quantum/switch/releases/latest) (which needs Docker), [Claude Code](https://claude.com/claude-code) signed in, Node 22+, `ffmpeg` and [`uv`](https://docs.astral.sh/uv/).
+
+```bash
+git clone https://github.com/aShah2025/Weave && cd Weave
+sh scripts/make-demo-footage.sh   # macOS. Or use your own video
+```
+
+1. In Console, open **Templates**, import `switch/weave-room.template.yaml`, and use it. Set **Weave folder** to your clone and **Footage** to `demo/footage/talk.mp4` in it, both as absolute paths.
+2. In the new room, give the first note: `@weave-producer use the whole talk, no cuts yet`. A preview comes back as v1.
+3. Give another note: `@weave-producer cut the pricing part`. v2 comes back about 10 seconds shorter, checked by QC.
+4. Say `approve`, and the final export lands in the thread.
+
+On Apple silicon with Colima, start it with `colima start --vm-type vz --vz-rosetta`. Console's Mattermost image is amd64 only, and it crashes under QEMU.
+
+## Weave Studio (separate and optional)
+
+The repo also has a manual editor that can join a channel as a single agent. The review room doesn't use it, and it needs its own API key and registration key.
+
+![Weave Studio](docs/studio.jpg)
+
+### In your chat
+
+Weave registers itself as a **Switch agent** and speaks the [Switch Agent Protocol](https://docs.switchagents.ai/switch-rooms/internals/agent-protocol) directly ([`src/switch.js`](src/switch.js)).
 
 ```
  Slack / Discord / Teams                 Switch server                       Weave Studio (your laptop)
@@ -42,7 +97,7 @@ Requests from chat run **sandboxed**: the agent can only touch files inside the 
 3. Paste the server address and that key into Weave Studio's **Switch** tab (or run `node bin/weave.js switch --url <server> --registration-key <key>`).
 4. Invite `@weave` to a channel and mention it with a clip.
 
-## The editor
+### The editor
 
 - **Live preview with no rendering step**: the timeline plays straight from low-res proxies. Cuts, crossfades, color, speed, fades, captions and music all update in real time.
 - **Timeline**: magnetic main video track, a text track and a music track; drag to reorder, trim from either edge, razor (`B`) or split at the playhead (`S`), ripple delete, duplicate, snapping, zoom, filmstrip thumbnails and waveforms.
@@ -60,7 +115,7 @@ Requests from chat run **sandboxed**: the agent can only touch files inside the 
 - Runs comfortably on a **16 GB laptop**. The browser only decodes ≤960p proxies, and one `<video>` element is reused per source file. ffmpeg's thread count is capped so the UI stays responsive. Old frame images are dropped from the agent's context.
 - The heavy lifting is ffmpeg: each export is **one ffmpeg process with one filter graph**, at full source quality.
 
-## Quick start
+### Studio quick start
 
 Requires **Node 22+**, **ffmpeg** on your PATH, and macOS for text overlays (captions are drawn with AppKit, because many ffmpeg builds lack `drawtext`). Everything else is cross-platform.
 
@@ -82,6 +137,8 @@ node bin/weave.js edit "cut the dead air, add a title, make it 9:16" -i talk.mp4
 | Path | Role |
 | --- | --- |
 | [`src/server.js`](src/server.js) | Zero-dep HTTP server: UI, media with range requests, live sync over SSE, exports, and one agent queue shared by the editor and chat |
+| [`switch/weave-room.template.yaml`](switch/weave-room.template.yaml) | The review room: three agents and how they work together |
+| [`bin/weave-tool.js`](bin/weave-tool.js) | The editing tools as a command, for agents that bring their own model |
 | [`src/switch.js`](src/switch.js) | Switch bridge: registration, WebSocket events, replies, media in and out, the approval gate |
 | [`src/agent.js`](src/agent.js) | Claude agent loop (Messages API + tool use, prompt caching, image pruning) |
 | [`src/tools.js`](src/tools.js) | 27 editing tools the model calls (and the sandbox for chat requests) |
@@ -97,6 +154,7 @@ npm test
 
 No API key or network is needed. The suite covers:
 
+- **The review room's tool command**: numbered previews, the no-change check, restore, frames as files, and the hard stop at 12 versions.
 - **Real ffmpeg renders**: silence cut, transitions, grade, ducked music, captions and a 9:16 reframe.
 - **The agent loop**, against a scripted stand-in for the Claude API.
 - **The whole Switch flow**, against a mock Switch server speaking the protocol: registration, WebSocket with ping/pong, ignoring un-addressed messages, importing footage from chat, posting a preview, `status`, then `approve` with the final export uploaded to the room.

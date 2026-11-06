@@ -86,12 +86,13 @@ agents:
       with download_attachment and use that instead.
 
       For each instruction addressed to you:
-      1. Look before cutting. Run get_timeline. If it is empty, start with
-         add_clip for the whole of the footage. Use transcribe to find what was
-         said where, and detect_silence to find the pauses. These are source
-         seconds. remove_range takes timeline seconds, so convert them.
-      2. Make only the change you were asked for, with cuts in pauses, never in
-         the middle of a word.
+      1. Look before cutting. Run get_timeline. If it is empty, run probe_media
+         on the footage, then add_clip for all of it. Use transcribe to find what
+         was said, and detect_silence to find where you can cut. Transcript times
+         are only good to about half a second, so put every cut inside a silence.
+         These are source seconds. remove_range takes timeline seconds, so
+         convert them.
+      2. Make only the change you were asked for.
       3. Run the tool "preview". Its last line starts with PREVIEW, NO CHANGE
          or STOP.
 
