@@ -38,8 +38,8 @@ params:
     input: advanced
   bridge:
     type: bridge
-    description: Where the room is mirrored. The server's default app is chosen.
-    default: [$first]
+    description: Where the room is mirrored. Slack if it is connected under that name, otherwise Mattermost.
+    default: [Slack, Mattermost, $first]
 
 agents:
   - name: "{team}-producer"

@@ -23,7 +23,7 @@ A video gets made in review: someone gives a note, someone re-cuts, someone chec
                      │  @weave-producer, PASS or REJECT
  weave-producer   "v2 passed. Approve it, or give me another note."
                      │
- You              approve
+ You              @weave-producer approve
                      │
  weave-editor     posts the final export. Only a person can approve.
 ```
@@ -44,14 +44,16 @@ The agents edit through [`bin/weave-tool.js`](bin/weave-tool.js), which exposes 
 You need [Switch Console](https://github.com/sandbox-quantum/switch/releases/latest) (which needs Docker), [Claude Code](https://claude.com/claude-code) signed in, Node 22+, `ffmpeg` and [`uv`](https://docs.astral.sh/uv/).
 
 ```bash
-git clone https://github.com/aShah2025/Weave && cd Weave
+git clone -b review-room https://github.com/aShah2025/Weave && cd Weave
 sh scripts/make-demo-footage.sh   # macOS. Or use your own video
 ```
 
 1. In Console, open **Templates**, import `switch/weave-room.template.yaml`, and use it. Set **Weave folder** to your clone and **Footage** to `demo/footage/talk.mp4` in it, both as absolute paths.
 2. In the new room, give the first note: `@weave-producer use the whole talk, no cuts yet`. A preview comes back as v1.
 3. Give another note: `@weave-producer cut the pricing part`. v2 comes back about 10 seconds shorter, checked by QC.
-4. Say `approve`, and the final export lands in the thread.
+4. Say `@weave-producer approve`, and the final export lands in the thread.
+
+To use Slack, connect it in Console under the name `Slack` before step 1, and link your account when the form asks, so the room can add you and the editor and QC will take your instructions. The template picks Slack if it's connected and Mattermost if not. Rooms that already exist stay where they are. We haven't run the room on Slack yet.
 
 On Apple silicon with Colima, start it with `colima start --vm-type vz --vz-rosetta`. Console's Mattermost image is amd64 only, and it crashes under QEMU.
 
