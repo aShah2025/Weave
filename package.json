@@ -1,7 +1,7 @@
 {
   "name": "weave",
   "version": "0.2.0",
-  "description": "AI video editor with a CapCut/Resolve-style studio that joins Slack/Discord via Switch",
+  "description": "A video crew in your team chat: five Claude Code agents in a Switch room plan, cut, grade and check a video until a person approves.",
   "type": "module",
   "bin": {
     "weave": "bin/weave.js"
@@ -13,5 +13,18 @@
   },
   "engines": {
     "node": ">=22"
-  }
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aShah2025/Weave.git"
+  },
+  "keywords": [
+    "switch",
+    "agents",
+    "claude-code",
+    "video-editing",
+    "ffmpeg",
+    "slack"
+  ]
 }
