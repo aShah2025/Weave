@@ -109,7 +109,12 @@ That's *Tears of Steel* (372 MB). Any video of yours works too, and `sh scripts/
    @crew-script cut this film into a 45-second trailer. Open on the world and the mystery, build through the robots and the fight, and end on the strongest line. Skip the opening logos and the end credits. Keep the film's 21:9 frame and 24 fps.
    ```
 
-3. Give a note: `@crew-vfx give it a cinematic look with teal and orange, dissolves between shots, and a fade out. Add the title TEARS OF STEEL at the start. End with this credit: Tears of Steel (CC) Blender Foundation | [mango.blender.org](http://mango.blender.org)`. v2 comes back, checked by QC.
+3. Give a note. v2 comes back, checked by QC.
+
+   ```
+   @crew-vfx give it a cinematic look with teal and orange, dissolves between shots, and a fade out. Add the title TEARS OF STEEL at the start. End with this credit: Tears of Steel (CC) Blender Foundation | mango.blender.org
+   ```
+
 4. Say `@crew-producer approve`, and the final lands in the thread. Always mention the producer, because a bare `approve` may never reach it.
 
 **If something's off:**
