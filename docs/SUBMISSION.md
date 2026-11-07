@@ -4,7 +4,7 @@ Everything for the form and the demo video. Items in **[brackets]** aren't true 
 
 ## Run of show for the recording
 
-Use a new Slack room made from the **Weave crew** template with the team set to `crew`, and start clean by moving `weave.project.json` and `exports/` out of your clone. Record with Recordly. Each step takes a few minutes, so speed up the waiting and say that it's sped up. The approval and the teammate's note have to come from those real people on their own accounts, because the video says so.
+Use a new Slack room made from the **Weave video crew** template with the team set to `crew`, and start clean by moving `weave.project.json` and `exports/` out of your clone. Record with Recordly. Each step takes a few minutes, so speed up the waiting and say that it's sped up. The approval and the teammate's note have to come from those real people on their own accounts, because the video says so.
 
 1. Rishith: `@crew-script cut this film into a 45-second trailer. Open on the world and the mystery, build through the robots and the fight, and end on the strongest line. Skip the opening logos and the end credits. Keep the film's 21:9 frame and 24 fps.`
 2. Wait for the shot list, v1 and QC's verdict.
@@ -45,7 +45,7 @@ The editor works through Weave's own tools, which number every version and won't
 
 ### Mario: people stay in charge (1:33 to 2:03)
 
-*On screen: Mario, then his note, v2 and v3, and the person typing approve.*
+*On screen: Mario, then Mario's note, v2 and v3, and the person typing approve.*
 
 People stay in charge. I can give a note from my own account: the ending feels long. Anyone in the channel can talk to the producer. The agents that run commands only take instructions from the owner and the owner's agents, and Switch enforces that. VFX handles the look: color, dissolves and titles. And nothing is final until a person says approve. An agent's approval doesn't count. Here's what the crew made.
 
