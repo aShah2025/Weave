@@ -35,10 +35,10 @@ Owns `src/`, `bin/`, `test/`, `web/`. Repo admin.
 
 Owns `README.md`, the video and the form.
 
-- [ ] Tonight: confirm our team is registered and find the submission form. The hackathon page doesn't link one, so start at **Register now**, then ask in the WeMakeDevs Discord.
+- [x] Tonight: confirm our team is registered and find the submission form. The hackathon page doesn't link one, so start at **Register now**, then ask in the WeMakeDevs Discord.
 - [x] Write the script and cut the demo video from Rishith's capture. Show the note, the QC verdict and the person approving. The page sets no length, so keep it under 3 minutes.
 - [ ] Read the README the way a judge would. How Switch is used should be clear from the first screen.
-- [ ] Submit, with everyone who worked on it listed under their real names.
+- [x] Submit. Filed Nov 7 at 6:47 AM PT. It stays editable until the deadline, so check that everyone who worked on it is listed under their real names.
 - [ ] Only if everything above is done: write a post for the Best Blog side track.
 
 ## Schedule
