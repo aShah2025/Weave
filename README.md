@@ -6,6 +6,8 @@
 
 **Demo video (2:53):** DEMO_VIDEO_LINK
 
+[![Weave demo video](docs/demo-poster.jpg)](DEMO_VIDEO_LINK)
+
 ## How Switch is used
 
 The crew is five agents talking to each other and to you in one channel. Without Switch there is no crew: no shared thread, no addressing between agents, no way to pass a video from one to the next, and nothing stopping a stranger in the channel from running commands. The team would be back to sending files and notes around by hand.
