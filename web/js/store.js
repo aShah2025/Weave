@@ -58,6 +58,7 @@ export const total = (p = S.project) => { const pos = positions(p); return pos.l
 export const mediaFor = (src) => S.project.media.find((m) => m.path === src);
 export const defaultColor = () => ({ brightness: 0, contrast: 1, saturation: 1, gamma: 1, temperature: 6500, look: 'none', vignette: false, sharpen: 0 });
 export const newId = (prefix) => `${prefix}${S.project.nextId++}`;
+export const defaultTransform = () => ({ zoom: 1, x: 0, y: 0, rotate: 0 });
 
 export function selected() {
   const s = S.sel;

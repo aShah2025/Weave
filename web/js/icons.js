@@ -35,6 +35,9 @@ const P = {
   link: '<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/>',
   send: '<path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/>',
   check: '<path d="M20 6 9 17l-5-5"/>',
+  wand: '<path d="m15 4 5 5"/><path d="M3 21 15.5 8.5"/><path d="M19 3v2M21 4h-2M10 3v1.5M10.75 3.75h-1.5M20 13v1.5M20.75 13.75h-1.5"/>',
+  cc: '<rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M10 10.2a2.5 2.5 0 1 0 0 3.6M17 10.2a2.5 2.5 0 1 0 0 3.6"/>',
+  crop: '<path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/>',
   download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/>',
 };
 const FILLED = new Set(['play', 'pause', 'skipback', 'skipfwd', 'stop']);

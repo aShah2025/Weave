@@ -3,24 +3,44 @@
 import { S, $, h, on, emit, positions, total, clipDur, mediaFor, cssFilter, clamp } from './store.js';
 
 const videosEl = $('#videos'), stage = $('#stage'), fadeLayer = $('#fadeLayer'), textLayer = $('#textLayer');
-const pool = new Map();      // media id -> <video>
+// Two <video> elements per media file (A/B). The upcoming clip is pre-seeked on the idle one,
+// so cuts — even between two parts of the same file — swap instantly instead of stalling on a seek.
+const pool = new Map();      // media id -> [<video>, <video>]
+const bound = new Map();     // clip id -> <video> currently holding that clip
 const audioPool = new Map(); // audio item id -> <audio>
 let wall0 = 0, t0 = 0;
 const vignette = h('div', { style: { position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.65) 100%)', opacity: 0 } });
 stage.insertBefore(vignette, fadeLayer);
 
 const urlFor = (m) => (m.proxy ? `/media/proxy/${m.id}` : `/media/source/${m.id}`) + `?v=${m.ready ? 1 : 0}`;
-function videoFor(m) {
-  let el = pool.get(m.id);
-  if (!el) {
-    el = h('video', { preload: 'auto', playsinline: true });
-    el.muted = true;
-    videosEl.append(el);
-    pool.set(m.id, el);
+function elsFor(m) {
+  let els = pool.get(m.id);
+  if (!els) {
+    els = [0, 1].map(() => { const el = h('video', { preload: 'auto', playsinline: true }); el.muted = true; videosEl.append(el); return el; });
+    pool.set(m.id, els);
   }
   const url = urlFor(m);
-  if (el.dataset.url !== url) { const t = el.currentTime; el.dataset.url = url; el.src = url; if (t) el.currentTime = t; }
+  for (const el of els) if (el.dataset.url !== url) { const t = el.currentTime; el.dataset.url = url; el.src = url; if (t) el.currentTime = t; }
+  return els;
+}
+// The element for a clip: keep its existing binding, otherwise take a free one (never one in `busy`).
+function videoFor(c, m, busy) {
+  const have = bound.get(c.id);
+  if (have && !busy.has(have) && pool.get(m.id)?.includes(have)) return have;
+  const els = elsFor(m);
+  const taken = new Set([...busy, ...[...bound.entries()].filter(([id]) => id !== c.id).map(([, el]) => el)]);
+  const el = els.find((e) => !taken.has(e)) || els.find((e) => !busy.has(e)) || els[0];
+  bound.set(c.id, el);
   return el;
+}
+function transformCss(c) {
+  const t = c.transform || {};
+  const z = Math.max(1, t.zoom || 1);
+  const parts = [];
+  if (z > 1) parts.push(`scale(${z})`, `translate(${(-(t.x || 0) * (z - 1) / (2 * z) * 100).toFixed(3)}%, ${(-(t.y || 0) * (z - 1) / (2 * z) * 100).toFixed(3)}%)`);
+  if (t.rotate) parts.push(`rotate(${t.rotate}deg)`);
+  if (c.flip) parts.push('scaleX(-1)');
+  return parts.join(' ');
 }
 function audioFor(a, m) {
   let el = audioPool.get(a.id);
@@ -37,7 +57,7 @@ export function layoutStage() {
   stage.style.aspectRatio = `${p.width} / ${p.height}`;
   stage.style.width = `min(100cqw, calc(100cqh * ${r}))`;
   stage.style.background = p.background || '#000';
-  for (const el of pool.values()) el.style.objectFit = p.fit === 'fill' ? 'cover' : 'contain';
+  for (const el of [...pool.values()].flat()) el.style.objectFit = p.fit === 'fill' ? 'cover' : 'contain';
 }
 
 function syncEl(el, target, rate, playing) {
@@ -73,8 +93,7 @@ export function sync() {
     for (const L of layers) {
       const c = p.clips[L.i], m = mediaFor(c.src);
       if (!m) continue;
-      const el = videoFor(m);
-      if (used.has(el)) continue; // same source on both sides of a transition
+      const el = videoFor(c, m, used);
       used.add(el);
       const local = clamp(c.start + (t - pos[L.i].start) * c.speed, c.start, Math.max(c.start, c.end - 0.001));
       syncEl(el, local, c.speed, S.playing);
@@ -82,7 +101,7 @@ export function sync() {
       el.style.zIndex = L.z;
       el.style.opacity = L.alpha;
       el.style.filter = cssFilter(c.color);
-      el.style.transform = c.flip ? 'scaleX(-1)' : '';
+      el.style.transform = transformCss(c);
       el.style.objectFit = p.fit === 'fill' ? 'cover' : 'contain';
       const into = t - pos[L.i].start, left = pos[L.i].end - t;
       let gain = 1;
@@ -93,19 +112,36 @@ export function sync() {
       el.volume = clamp(c.volume * gain * (L.z === 2 ? L.alpha : 1 - layers[0].alpha), 0, 1);
     }
   }
-  for (const el of pool.values()) if (!used.has(el)) { el.classList.remove('on'); if (!el.paused) el.pause(); }
+  // Pre-roll: park the next clip, already seeked, on an idle element.
+  const keep = new Set([...used]);
+  const next = i >= 0 ? p.clips[i + 1] : null;
+  if (next && pos[i + 1].start - t < 1.5) {
+    const m = mediaFor(next.src);
+    if (m) {
+      const el = videoFor(next, m, used);
+      keep.add(el);
+      if (!used.has(el)) {
+        el.classList.remove('on');
+        if (!el.paused) el.pause();
+        if (Math.abs(el.currentTime - next.start) > 0.05 && !el.seeking) el.currentTime = next.start;
+      }
+    }
+  }
+  const live = new Set([i, i - 1, i + 1].filter((k) => k >= 0 && p.clips[k]).map((k) => p.clips[k].id));
+  for (const id of bound.keys()) if (!live.has(id)) bound.delete(id);
+  for (const els of pool.values()) for (const el of els) if (!keep.has(el)) { el.classList.remove('on'); if (!el.paused) el.pause(); }
   fadeLayer.style.opacity = fade;
   vignette.style.opacity = vig ? 1 : 0;
 
   // Music track
   const dialogue = i >= 0 && p.clips[i]?.hasAudio && p.clips[i].volume > 0;
-  const live = new Set();
+  const liveAudio = new Set();
   for (const a of p.audio) {
     const m = mediaFor(a.src);
     if (!m) continue;
     const len = a.end - a.start;
     const el = audioFor(a, m);
-    live.add(a.id);
+    liveAudio.add(a.id);
     if (t >= a.at && t < a.at + len) {
       const local = a.start + (t - a.at);
       syncEl(el, local, 1, S.playing);
@@ -117,7 +153,7 @@ export function sync() {
       el.muted = S.muted;
     } else if (!el.paused) el.pause();
   }
-  for (const [id, el] of audioPool) if (!live.has(id)) { el.pause(); audioPool.delete(id); }
+  for (const [id, el] of audioPool) if (!liveAudio.has(id)) { el.pause(); audioPool.delete(id); }
 
   renderOverlays();
 }
@@ -166,7 +202,7 @@ export function play() {
 }
 export function pause() {
   S.playing = false;
-  for (const el of pool.values()) el.pause();
+  for (const els of pool.values()) for (const el of els) el.pause();
   for (const el of audioPool.values()) el.pause();
   sync();
   emit('play');

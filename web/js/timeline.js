@@ -1,5 +1,5 @@
 // Timeline UI: ruler, tracks (text / video / music), drag-move, trim, razor, snapping, drop from bin.
-import { S, $, h, on, emit, positions, total, clipDur, mediaFor, commit, begin, save, select, selected, clamp, newId, defaultColor, toast, api, dur } from './store.js';
+import { S, $, h, on, emit, positions, total, clipDur, mediaFor, commit, begin, save, select, selected, clamp, newId, defaultColor, defaultTransform, toast, api, dur } from './store.js';
 import { seek, pause } from './player.js';
 
 const scroll = $('#tlScroll'), inner = $('#tlInner'), ruler = $('#ruler');
@@ -32,11 +32,16 @@ async function peaksFor(m) {
   S.peaks.set(m.id, null);
   try { const p = await api(`/api/peaks/${m.id}`); S.peaks.set(m.id, p); render(); return p; } catch { return null; }
 }
+// Drawn waveforms are cached by (media, range, size, color), so re-renders and drags just blit them.
+const waveCache = new Map();
 function drawWave(canvas, m, from, to, color) {
   const pk = S.peaks.get(m?.id);
   if (!pk) { peaksFor(m); return; }
   const w = canvas.width = Math.max(1, Math.min(4096, Math.round(canvas.clientWidth || parseFloat(canvas.style.width) || 100)));
   const hgt = canvas.height = canvas.clientHeight || 22;
+  const key = `${m.id}|${from.toFixed(3)}|${to.toFixed(3)}|${w}|${hgt}|${color}`;
+  const hit = waveCache.get(key);
+  if (hit) { canvas.getContext('2d').drawImage(hit, 0, 0); return; }
   const g = canvas.getContext('2d');
   g.fillStyle = color;
   const a = from * pk.perSec, b = to * pk.perSec;
@@ -47,6 +52,18 @@ function drawWave(canvas, m, from, to, color) {
     const bh = Math.max(1, (v / 255) * hgt);
     g.fillRect(x, hgt - bh, 1, bh);
   }
+  const copy = document.createElement('canvas');
+  copy.width = w; copy.height = hgt;
+  copy.getContext('2d').drawImage(canvas, 0, 0);
+  waveCache.set(key, copy);
+  if (waveCache.size > 300) waveCache.delete(waveCache.keys().next().value);
+}
+
+// Coalesce many render requests (drag, trim, live slider) into one per animation frame.
+let renderQueued = 0;
+export function scheduleRender() {
+  if (renderQueued) return;
+  renderQueued = requestAnimationFrame(() => { renderQueued = 0; render(); });
 }
 
 // ---------- render ----------
@@ -101,6 +118,7 @@ export function render() {
     if (c.volume === 0) tags.push('muted');
     if (c.color?.look && c.color.look !== 'none') tags.push(c.color.look.replace('_', '/'));
     if (c.fadeIn || c.fadeOut) tags.push('fade');
+    if (c.transform && (c.transform.zoom > 1 || c.transform.rotate)) tags.push(c.transform.rotate ? `${c.transform.rotate}°` : `${(+c.transform.zoom).toFixed(1)}× zoom`);
     el.append(h('div', { class: 'label' }, m?.name || 'missing media', ...tags.map((t) => h('span', { class: 'tag' }, t))), ...handles());
     vids.push(el);
     if (pos[i].trans > 0) {
@@ -109,7 +127,7 @@ export function render() {
   });
   videoTrack.replaceChildren(...vids);
 
-  textTrack.replaceChildren(...p.texts.map((t) => h('div', { class: `item tclip ${S.sel?.id === t.id ? 'sel' : ''}`, 'data-type': 'text', 'data-id': t.id, style: { left: `${t.start * S.pps}px`, width: `${Math.max(4, (t.end - t.start) * S.pps)}px` } }, t.text.split('\n')[0], ...handles())));
+  textTrack.replaceChildren(...p.texts.map((t) => h('div', { class: `item tclip ${t.auto ? 'auto' : ''} ${S.sel?.id === t.id ? 'sel' : ''}`, 'data-type': 'text', 'data-id': t.id, style: { left: `${t.start * S.pps}px`, width: `${Math.max(4, (t.end - t.start) * S.pps)}px` } }, t.text.split('\n')[0], ...handles())));
 
   audioTrack.replaceChildren(...p.audio.map((a) => {
     const m = mediaFor(a.src);
@@ -200,7 +218,7 @@ export function addMediaToTimeline(m, { index, at } = {}) {
   }
   commit((p) => {
     if (!p.clips.length && m.width && p.media.length <= 1) { p.width = Math.round(m.width / 2) * 2; p.height = Math.round(m.height / 2) * 2; }
-    const c = { id: newId('c'), src: m.path, start: 0, end: m.duration, speed: 1, volume: 1, hasAudio: !!m.hasAudio, fadeIn: 0, fadeOut: 0, transition: null, flip: false, color: defaultColor() };
+    const c = { id: newId('c'), src: m.path, start: 0, end: m.duration, speed: 1, volume: 1, hasAudio: !!m.hasAudio, fadeIn: 0, fadeOut: 0, transition: null, flip: false, color: defaultColor(), transform: defaultTransform() };
     p.clips.splice(index ?? p.clips.length, 0, c);
     S.sel = { type: 'clip', id: c.id };
   });
@@ -291,7 +309,7 @@ function drag(e, type, id, edge, t0) {
       else if (edge === 'r') obj.end = clamp(orig.end + dt, orig.start + 0.1, srcDur);
       else obj.at = Math.max(0, snap(orig.at + dt, pts));
     }
-    render();
+    scheduleRender();
     emit('change', { from: 'drag' });
   };
   const up = () => {
@@ -359,7 +377,7 @@ export function setTool(tool) {
 }
 for (const b of document.querySelectorAll('[data-tool]')) b.onclick = () => setTool(b.dataset.tool);
 
-on('change', (o) => { if (o?.from !== 'drag') render(); });
+on('change', (o) => { if (o?.from === 'inspector') scheduleRender(); else if (o?.from !== 'drag') render(); });
 on('time', updatePlayhead);
 on('select', render);
 new ResizeObserver(() => render()).observe(scroll);

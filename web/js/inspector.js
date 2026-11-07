@@ -1,5 +1,5 @@
 // Inspector: properties for the selected clip / text / audio item, or project settings.
-import { S, $, h, on, emit, commit, begin, save, selected, mediaFor, defaultColor, clipDur, positions, total, tc, dur } from './store.js';
+import { S, $, h, on, emit, commit, begin, save, selected, mediaFor, defaultColor, defaultTransform, clipDur, positions, total, tc, dur } from './store.js';
 
 const root = $('#inspector');
 
@@ -44,6 +44,16 @@ function clipInspector(c) {
       slider('Fade out', c.fadeOut, { min: 0, max: 3, step: 0.05, fmt: (v) => `${(+v).toFixed(2)}s`, set: (v) => (c.fadeOut = v) }),
       toggle('Mirror', c.flip, (v) => (c.flip = v)),
     ]),
+    group('Transform', (() => {
+      const setT = (k) => (v) => { c.transform = { ...defaultTransform(), ...c.transform, [k]: v }; };
+      const tr = { ...defaultTransform(), ...c.transform };
+      return [
+        slider('Zoom', tr.zoom, { min: 1, max: 3, step: 0.01, fmt: (v) => `${(+v).toFixed(2)}×`, set: setT('zoom') }),
+        slider('Pan X', tr.x, { min: -1, max: 1, step: 0.01, set: setT('x') }),
+        slider('Pan Y', tr.y, { min: -1, max: 1, step: 0.01, set: setT('y') }),
+        slider('Rotate', tr.rotate, { min: -180, max: 180, step: 1, fmt: (v) => `${Math.round(v)}°`, set: setT('rotate') }),
+      ];
+    })(), h('button', { class: 'btn sm ghost', onclick: () => commit(() => { c.transform = defaultTransform(); }) }, 'Reset')),
     i > 0 ? group('Transition in', [
       select('Type', [['none', 'None (cut)'], ...S.transitions.map((t) => [t, t])], c.transition?.type || 'none', (v) => (c.transition = v === 'none' ? null : { type: v, duration: c.transition?.duration || 0.5 })),
       c.transition ? slider('Duration', c.transition.duration, { min: 0.1, max: 2, step: 0.05, fmt: (v) => `${(+v).toFixed(2)}s`, set: (v) => (c.transition.duration = v) }) : null,
@@ -117,6 +127,7 @@ function projectInspector() {
       seg('Frame rate', [[24, '24'], [25, '25'], [30, '30'], [60, '60']], p.fps, (v) => (p.fps = v)),
       h('div', { class: 'row wide' }, h('label', {}, 'Background'), bg),
     ]),
+    group('Audio', [toggle('Normalize to −14 LUFS', !!p.normalize, (v) => (p.normalize = v))]),
     h('p', { class: 'hint' }, 'Select a clip, caption or music item on the timeline to edit it. Everything here is also available to the AI editor — try “make this vertical for Reels”.'),
   ];
 }

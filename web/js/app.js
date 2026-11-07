@@ -4,7 +4,7 @@ import { hydrateIcons, setIcon } from './icons.js';
 import { sync, layoutStage, toggle, seek, pause, play } from './player.js';
 import { render as renderTimeline, zoomFit, splitAtPlayhead, deleteSelection, duplicateSelection, setTool, setZoom } from './timeline.js';
 import { renderInspector } from './inspector.js';
-import { renderMedia, renderLibraries, renderChat, renderSwitch, onAgentEvent, openExport, openSettings, onRenderProgress, onRendered, uploadFiles } from './panels.js';
+import { renderMedia, renderLibraries, renderChat, renderSwitch, onAgentEvent, openExport, openSettings, onRenderProgress, onRendered, uploadFiles, onTask } from './panels.js';
 
 hydrateIcons();
 
@@ -139,6 +139,7 @@ function connect() {
     renderTop();
   });
   es.addEventListener('agent', (e) => onAgentEvent(JSON.parse(e.data)));
+  es.addEventListener('task', (e) => onTask(JSON.parse(e.data)));
   es.addEventListener('render', (e) => onRenderProgress(JSON.parse(e.data)));
   es.addEventListener('rendered', (e) => onRendered(JSON.parse(e.data)));
   es.addEventListener('switch', (e) => { S.sw = JSON.parse(e.data); renderSwitch(); });
