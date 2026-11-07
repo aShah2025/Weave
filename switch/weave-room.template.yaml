@@ -213,6 +213,8 @@ agents:
       is not your job.
 
       Compare what you measured with the note the cut was meant to address.
+      Previews are rendered small on purpose so they fit in chat, so judge a
+      preview's shape and not its size. Only the final is full size.
       Reply to the producer in the same thread with PASS or REJECT, what you
       measured, and for a rejection the timecode and what is wrong. Never address
       the agent that made the cut: the producer decides whether it does another

@@ -15,42 +15,63 @@ Use a new Slack room made from the **Weave crew** template with the team set to 
 7. Rishith: `@crew-producer approve`
 8. The final lands in the thread. Play it.
 
-## Demo script (2:50)
+## Script for the video (about 2:40)
 
-| Time | On screen | Say |
-| --- | --- | --- |
-| 0:00 | The final trailer, first 10 seconds | "This trailer was cut in a Slack thread. Nobody opened a video editor." |
-| 0:10 | Slack channel, scrolled through the finished thread | "Video work already happens in chat. Someone writes 'shorten the ending', and then someone has to go do it, export it, and send it back. Weave puts the crew in the channel." |
-| 0:25 | Switch Console, Templates, Weave crew, the form, Create all | "This is Switch. One template creates five agents and the channel: a script writer, a producer, an editor, VFX and QC." |
-| 0:40 | Console's agent list | "Each one is Claude Code, running on my own login. There's no API key." |
-| 0:50 | Typing the `@crew-script` note | "I'm cutting Tears of Steel, Blender's open film, into a trailer. I just ping the script agent." |
-| 1:00 | Sped up, labelled: shot list, producer, editor, v1 | "It reads the transcript and looks at frames, then posts a shot list. The producer hands it to the editor. They're addressing each other through Switch, in a thread we can all read." |
-| 1:20 | QC's message and the file it downloaded | "QC downloads the file that landed in the room and measures it. It can reject a cut." |
-| 1:35 | Typing the `@crew-vfx` note, then v2 | "Now the look. VFX can change color and titles, but not what's in the cut." |
-| 1:55 | The teammate's note, then v3 | "My teammate has a note too. Anyone in the channel can talk to the producer. The agents that run commands only take instructions from me and my own agents, and Switch enforces that." |
-| 2:15 | Typing `@crew-producer approve`, then the final in the thread | "Only a person can approve. An agent's approval doesn't count." |
-| 2:25 | The final trailer, 15 seconds with its credit | "That's the crew's real output." |
-| 2:40 | The repo's README | "Without Switch there's no shared thread, no addressing between agents, and no way to pass a video along. Clone it and try it. It's all in the README." |
+Rishith, Aaditya and Mario each have one part, and all three are on screen for the opening and the close. Every line has to be true of the run we show, so change a line if the run goes differently.
 
-## Speech for the talking clips (about 2:20)
+### Opening, all three (0:00 to 0:17)
 
-**On camera, Rishith:** Making a video with a team is mostly chat. Someone writes "shorten the ending", and then somebody has to open an editor, make the change, export it and send it back. So we asked: what if the crew just lived in the chat?
+*On screen: all three faces.*
 
-**On camera, Aaditya:** This is Weave. It's five AI agents in a Slack channel: a script writer, a producer, an editor, VFX and QC. They're Claude Code agents, and Switch is what connects them.
+**Rishith:** Making a video with a team is mostly chat.
 
-**Over the recording, Rishith:** One Switch template creates all five agents and the channel. They run on our own Claude Code login, so there's no API key. We ping the script agent to cut Tears of Steel, Blender's open film, into a 45-second trailer. It reads the transcript, looks at frames, and posts a shot list. The producer hands that to the editor. The editor cuts it and posts a preview, and QC downloads that exact file and measures it. That's all agents addressing each other through Switch, in a thread we can all read. We've sped this part up.
+**Aaditya:** Someone writes "shorten the ending", and then somebody has to open an editor, make the change, export it and send it back.
 
-Next we ask VFX for a cinematic look. VFX can change color and titles, but it can't change what's in the cut.
+**Mario:** So we put the whole crew in the chat.
 
-**Over the recording, Aaditya:** I can give a note too. Anyone in the channel can talk to the producer. The agents that run commands only take instructions from the owner and the owner's agents, and Switch enforces that.
+**All three:** This is Weave.
 
-**Over the recording, Rishith:** Nothing is final until a person says approve. An agent's approval doesn't count. Here's what the crew made.
+### Rishith: the crew and Switch (0:17 to 0:55)
 
-*(The trailer plays for 15 seconds, with its credit.)*
+*On screen: Rishith, then the Switch template, Create all, the new Slack channel, the ping and the shot list.*
 
-**On camera, Rishith:** Without Switch there's no shared thread, no agents talking to each other, and no way to pass a video along.
+Weave is five agents in a Slack channel: a script writer, a producer, an editor, VFX and QC. One Switch template creates all of them and the channel in one step. Each one is Claude Code on our own login, so there's no API key. I ping the script agent to cut Tears of Steel, Blender's open film, into a 45-second trailer. It reads the transcript, looks at frames and posts a shot list in the thread. The producer hands that to the editor. That's agents talking to each other through Switch, where we can all read it.
 
-**On camera, Aaditya:** It's all open source. Clone the repo, follow the README, and you can run this crew yourself.
+### Aaditya: cutting and checking (0:55 to 1:33)
+
+*On screen: Aaditya, then v1 landing in the thread and QC's verdict, labelled "sped up".*
+
+The editor works through Weave's own tools, which number every version and won't post an unchanged cut as a new one. When a preview is ready, it attaches the file through Switch. QC downloads that exact file and measures it, then says pass or reject. In a rehearsal it rejected a cut for being half size. The editor couldn't fix that, so the producer stopped and asked us. That one was our bug, and we fixed it. We've sped this part up, because each step takes a few minutes.
+
+### Mario: people stay in charge (1:33 to 2:03)
+
+*On screen: Mario, then his note, v2 and v3, and the person typing approve.*
+
+People stay in charge. I can give a note from my own account: the ending feels long. Anyone in the channel can talk to the producer. The agents that run commands only take instructions from the owner and the owner's agents, and Switch enforces that. VFX handles the look: color, dissolves and titles. And nothing is final until a person says approve. An agent's approval doesn't count. Here's what the crew made.
+
+### The trailer (2:03 to 2:18)
+
+*On screen: 15 seconds of the final trailer, with its credit. Nobody talks.*
+
+### Close, all three (2:18 to 2:40)
+
+*On screen: all three faces, then the README.*
+
+**Rishith:** Without Switch there's no shared thread, no agents talking to each other, and no way to pass a video along.
+
+**Aaditya:** It's all open source. Clone the repo, follow the README, and you can run this crew yourself.
+
+**Mario:** Tears of Steel is by the Blender Foundation, under Creative Commons.
+
+**All three:** We're Weave. Thanks for watching.
+
+### How to record your clips
+
+- Hold the phone sideways at eye level, in a quiet room, with a light in front of you.
+- Say the opening line, your part and the close line as three separate clips. Leave a second of silence before and after each one.
+- Look at the lens. Reading off a screen right beside it is fine.
+- If you can't be in one room, record your lines alone, and the opening and close become a three-way split screen. Everyone says the "All three" lines on their own too, and they get layered.
+- Name the files like `mario-open`, `mario-part` and `mario-close`.
 
 ## Form answers
 
