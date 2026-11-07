@@ -50,10 +50,10 @@ sh scripts/make-demo-footage.sh   # macOS. Or use your own video
 
 1. In Console, open **Templates**, import `switch/weave-room.template.yaml`, and use it. Set **Weave folder** to your clone and **Footage** to `demo/footage/talk.mp4` in it, both as absolute paths.
 2. In the new room, give the first note: `@weave-producer use the whole talk, no cuts yet`. A preview comes back as v1.
-3. Give another note: `@weave-producer cut the pricing part`. v2 comes back about 10 seconds shorter, checked by QC.
+3. Give another note: `@weave-producer cut the pricing part`. v2 comes back about 12 seconds shorter, checked by QC.
 4. Say `@weave-producer approve`, and the final export lands in the thread.
 
-We haven't run steps 2 to 4 end to end in a live room yet. The cut itself has been checked outside Switch.
+We ran these steps in a live room on Console's built-in chat, with the demo talk. v1 came back at 54.84 s and v2 at 42.84 s with the pricing part gone, each about two minutes after the note. The final export landed 14 seconds after approval.
 
 To use Slack, connect it in Console under the name `Slack` before step 1, and link your account when the form asks, so the room can add you and the editor and QC will take your instructions. The template picks Slack if it's connected and Mattermost if not. Rooms that already exist stay where they are. We haven't run the room on Slack yet.
 

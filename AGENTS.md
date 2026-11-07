@@ -18,16 +18,16 @@ Tick a box and push when it's done, so nobody has to ask.
 
 Owns `switch/` and the agents' instructions.
 
-- [ ] Run the whole loop on Mattermost: v1, `cut the pricing part`, v2, `approve`, final export.
+- [x] Run the whole loop on Mattermost: v1, `cut the pricing part`, v2, `approve`, final export.
 - [ ] Connect Slack in Console and run the room there. Mattermost is enough for the rules, so if Slack isn't working by the freeze, we ship on Mattermost.
-- [ ] Record one clean screen capture of a full run and give it to Mario.
+- [ ] Record one clean screen capture of a full run and give it to Mario, with a person typing the notes and the approval. Start from a clean state (see the end of this file).
 
 ### Aaditya (`aShah2025`): it has to run on someone else's machine
 
 Owns `src/`, `bin/`, `test/`, `web/`. Repo admin.
 
 - [ ] Clone `main` on a machine that has never run Weave and follow the README word for word. Judges will do exactly this. Fix or report every place it breaks.
-- [ ] Run the room on real footage, attached in chat instead of given as a path. Nobody has tried this yet.
+- [ ] Run the room on real footage, attached in chat instead of given as a path. Nobody has tried this yet. In the demo run QC also read `scripts/demo-talk.txt`, so check that it still judges a cut properly when there's no script to read.
 - [ ] Fix whatever those two runs turn up in the editing tools.
 - [ ] Check the README's Studio section. Its registration key steps need an API Keys screen that Console 0.40.1 doesn't have.
 
@@ -47,7 +47,7 @@ All times PT.
 
 | When | What |
 | --- | --- |
-| Friday night | The live run passes. Clean-clone test started. Registration and the form confirmed. |
+| Friday night | Clean-clone test started. Registration and the form confirmed. Slack connected. |
 | Saturday 8:00 AM | Code freeze. README and bug fixes only after this. |
 | Saturday 9:00 AM | Demo video uploaded. |
 | Saturday 9:45 AM | Submitted. |
@@ -101,21 +101,23 @@ Update this list as things change. It's the honest version of the README.
 
 **Proven:**
 
-- Agents address each other in a room and reply.
+- The full loop in a live room on Mattermost, run on Nov 6 with the demo talk and no terminal: note, v1 (54.84 s), `cut the pricing part`, v2 (42.84 s), QC PASS, `approve`, `final.mp4` (1280x720, 3.7 MB) in the thread. Each cut took about two minutes from note to verdict, and the export took 14 s. We also measured v2 ourselves: no pricing words left and the neighbouring lines intact.
 - An MP4 goes from the editor to QC byte for byte and plays in chat.
-- The v1 to v2 cut works outside Switch: 54.84 s to 43.24 s, pricing gone, neighbouring lines intact.
+- The editor and QC take instructions from the producer on `owner-agents`.
 - `npm test` passes.
 
 **Not proven yet:**
 
-- The full loop in a live room, including the final export on approve.
 - Someone attaching footage in chat.
 - Real footage rather than the demo talk.
+- QC rejecting a bad cut and the editor fixing it. Every verdict so far has been PASS.
+- A second person in the room, including the editor and QC refusing their instructions.
 - Slack.
 - A clean clone on another machine.
 
 ## Things that already cost us time
 
+- **For a clean start,** delete `weave.project.json` and `exports/` from your clone, then create a new room. Otherwise the timeline carries over and versions keep counting from the last run.
 - **Always mention the producer:** `@weave-producer approve`. A bare `approve` may never reach it.
 - **After a Colima restart,** run `docker start switchdash-local-mattermost-mattermost-1`. Its restart policy is `no`.
 - **If Mattermost goes unhealthy or uploads fail,** check free disk first. A full disk turned Docker's disk read-only on us. `colima ssh -- sudo dmesg` shows it, and `colima restart` clears it.
