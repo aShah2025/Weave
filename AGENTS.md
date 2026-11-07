@@ -29,16 +29,16 @@ Owns `src/`, `bin/`, `test/`, `web/`. Repo admin.
 - [ ] Clone `main` on a machine that has never run Weave and follow the README word for word. Judges will do exactly this. Fix or report every place it breaks.
 - [ ] Run the room on real footage, attached in chat instead of given as a path. Nobody has tried this yet. In the demo run QC also read `scripts/demo-talk.txt`, so check that it still judges a cut properly when there's no script to read.
 - [ ] Fix whatever those two runs turn up in the editing tools.
-- [ ] Check the README's Studio section. Its registration key steps need an API Keys screen that Console 0.40.1 doesn't have.
+- [ ] Check `docs/STUDIO.md`. Its registration key steps need an API Keys screen that Console 0.40.1 doesn't have.
 
 ### Mario (`mario-lindev`): the demo video and the submission
 
 Owns `README.md`, the video and the form.
 
-- [ ] Tonight: confirm our team is registered and find the submission form. The hackathon page doesn't link one, so start at **Register now**, then ask in the WeMakeDevs Discord.
-- [ ] Write the script and cut the demo video from Rishith's capture. Show the note, the QC verdict and the person approving. The page sets no length, so keep it under 3 minutes.
+- [x] Tonight: confirm our team is registered and find the submission form. The hackathon page doesn't link one, so start at **Register now**, then ask in the WeMakeDevs Discord.
+- [x] Write the script and cut the demo video from Rishith's capture. Show the note, the QC verdict and the person approving. The page sets no length, so keep it under 3 minutes.
 - [ ] Read the README the way a judge would. How Switch is used should be clear from the first screen.
-- [ ] Submit, with everyone who worked on it listed under their real names.
+- [x] Submit. Filed Nov 7 at 6:47 AM PT. It stays editable until the deadline, so check that everyone who worked on it is listed under their real names.
 - [ ] Only if everything above is done: write a post for the Best Blog side track.
 
 ## Schedule
@@ -107,11 +107,13 @@ Update this list as things change. It's the honest version of the README.
 - An MP4 goes from the editor to QC byte for byte and plays in chat.
 - The editor and QC take instructions from the producer on `owner-agents`.
 - `npm test` passes.
+- The final re-rendered from the crew's v4 timeline on `main`, byte for byte. See `docs/RUN.md`.
 
 **Not proven yet:**
 
 - Someone attaching footage in chat.
-- QC rejecting a bad cut and the editor fixing it on its own.
+- QC rejecting a bad cut and the editor fixing it on its own. Its one rejection was a false alarm.
+- Approval in code: it's a rule in the producer's instructions, and `final` has no check of its own.
 - A second person in the room, including the editor and QC refusing their instructions.
 - A clean clone on another machine.
 

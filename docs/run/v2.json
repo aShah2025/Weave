@@ -1,0 +1,269 @@
+{
+  "version": 2,
+  "name": "tears-of-steel",
+  "width": 1280,
+  "height": 534,
+  "fps": 24,
+  "fit": "fit",
+  "background": "#000000",
+  "media": [],
+  "clips": [
+    {
+      "id": "c1",
+      "src": "/Users/rishith/Developer/Weave/demo/footage/tears-of-steel.mov",
+      "start": 45.7,
+      "end": 53.6,
+      "speed": 1,
+      "volume": 1,
+      "hasAudio": true,
+      "fadeIn": 0,
+      "fadeOut": 0,
+      "transition": null,
+      "flip": false,
+      "color": {
+        "brightness": 0,
+        "contrast": 1,
+        "saturation": 1,
+        "gamma": 1,
+        "temperature": 6500,
+        "look": "teal_orange",
+        "vignette": false,
+        "sharpen": 0
+      }
+    },
+    {
+      "id": "c2",
+      "src": "/Users/rishith/Developer/Weave/demo/footage/tears-of-steel.mov",
+      "start": 27,
+      "end": 34.5,
+      "speed": 1,
+      "volume": 1,
+      "hasAudio": true,
+      "fadeIn": 0,
+      "fadeOut": 0,
+      "transition": {
+        "type": "dissolve",
+        "duration": 0.5
+      },
+      "flip": false,
+      "color": {
+        "brightness": 0,
+        "contrast": 1,
+        "saturation": 1,
+        "gamma": 1,
+        "temperature": 6500,
+        "look": "teal_orange",
+        "vignette": false,
+        "sharpen": 0
+      }
+    },
+    {
+      "id": "c3",
+      "src": "/Users/rishith/Developer/Weave/demo/footage/tears-of-steel.mov",
+      "start": 190,
+      "end": 195.5,
+      "speed": 1,
+      "volume": 1,
+      "hasAudio": true,
+      "fadeIn": 0,
+      "fadeOut": 0,
+      "transition": {
+        "type": "dissolve",
+        "duration": 0.5
+      },
+      "flip": false,
+      "color": {
+        "brightness": 0,
+        "contrast": 1,
+        "saturation": 1,
+        "gamma": 1,
+        "temperature": 6500,
+        "look": "teal_orange",
+        "vignette": false,
+        "sharpen": 0
+      }
+    },
+    {
+      "id": "c4",
+      "src": "/Users/rishith/Developer/Weave/demo/footage/tears-of-steel.mov",
+      "start": 295.5,
+      "end": 298.5,
+      "speed": 1,
+      "volume": 1,
+      "hasAudio": true,
+      "fadeIn": 0,
+      "fadeOut": 0,
+      "transition": {
+        "type": "dissolve",
+        "duration": 0.5
+      },
+      "flip": false,
+      "color": {
+        "brightness": 0,
+        "contrast": 1,
+        "saturation": 1,
+        "gamma": 1,
+        "temperature": 6500,
+        "look": "teal_orange",
+        "vignette": false,
+        "sharpen": 0
+      }
+    },
+    {
+      "id": "c5",
+      "src": "/Users/rishith/Developer/Weave/demo/footage/tears-of-steel.mov",
+      "start": 382.8,
+      "end": 388.5,
+      "speed": 1,
+      "volume": 1,
+      "hasAudio": true,
+      "fadeIn": 0,
+      "fadeOut": 0,
+      "transition": {
+        "type": "dissolve",
+        "duration": 0.5
+      },
+      "flip": false,
+      "color": {
+        "brightness": 0,
+        "contrast": 1,
+        "saturation": 1,
+        "gamma": 1,
+        "temperature": 6500,
+        "look": "teal_orange",
+        "vignette": false,
+        "sharpen": 0
+      }
+    },
+    {
+      "id": "c6",
+      "src": "/Users/rishith/Developer/Weave/demo/footage/tears-of-steel.mov",
+      "start": 466,
+      "end": 469.8,
+      "speed": 1,
+      "volume": 1,
+      "hasAudio": true,
+      "fadeIn": 0,
+      "fadeOut": 0,
+      "transition": {
+        "type": "dissolve",
+        "duration": 0.5
+      },
+      "flip": false,
+      "color": {
+        "brightness": 0,
+        "contrast": 1,
+        "saturation": 1,
+        "gamma": 1,
+        "temperature": 6500,
+        "look": "teal_orange",
+        "vignette": false,
+        "sharpen": 0
+      }
+    },
+    {
+      "id": "c7",
+      "src": "/Users/rishith/Developer/Weave/demo/footage/tears-of-steel.mov",
+      "start": 503,
+      "end": 508.3,
+      "speed": 1,
+      "volume": 1,
+      "hasAudio": true,
+      "fadeIn": 0,
+      "fadeOut": 0,
+      "transition": {
+        "type": "dissolve",
+        "duration": 0.5
+      },
+      "flip": false,
+      "color": {
+        "brightness": 0,
+        "contrast": 1,
+        "saturation": 1,
+        "gamma": 1,
+        "temperature": 6500,
+        "look": "teal_orange",
+        "vignette": false,
+        "sharpen": 0
+      }
+    },
+    {
+      "id": "c8",
+      "src": "/Users/rishith/Developer/Weave/demo/footage/tears-of-steel.mov",
+      "start": 518,
+      "end": 521,
+      "speed": 1,
+      "volume": 1,
+      "hasAudio": true,
+      "fadeIn": 0,
+      "fadeOut": 0,
+      "transition": {
+        "type": "dissolve",
+        "duration": 0.5
+      },
+      "flip": false,
+      "color": {
+        "brightness": 0,
+        "contrast": 1,
+        "saturation": 1,
+        "gamma": 1,
+        "temperature": 6500,
+        "look": "teal_orange",
+        "vignette": false,
+        "sharpen": 0
+      }
+    },
+    {
+      "id": "c9",
+      "src": "/Users/rishith/Developer/Weave/demo/footage/tears-of-steel.mov",
+      "start": 533.8,
+      "end": 537.1,
+      "speed": 1,
+      "volume": 1,
+      "hasAudio": true,
+      "fadeIn": 0,
+      "fadeOut": 1,
+      "transition": {
+        "type": "dissolve",
+        "duration": 0.5
+      },
+      "flip": false,
+      "color": {
+        "brightness": 0,
+        "contrast": 1,
+        "saturation": 1,
+        "gamma": 1,
+        "temperature": 6500,
+        "look": "teal_orange",
+        "vignette": false,
+        "sharpen": 0
+      }
+    }
+  ],
+  "audio": [],
+  "texts": [
+    {
+      "id": "t10",
+      "position": "top",
+      "size": 72,
+      "color": "white",
+      "box": true,
+      "style": "bold",
+      "text": "TEARS OF STEEL",
+      "start": 0.5,
+      "end": 4
+    },
+    {
+      "id": "t11",
+      "position": "bottom",
+      "size": 28,
+      "color": "white",
+      "box": true,
+      "style": "bold",
+      "text": "Tears of Steel (CC) Blender Foundation | mango.blender.org",
+      "start": 37.7,
+      "end": 41
+    }
+  ],
+  "nextId": 12
+}
