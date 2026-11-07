@@ -4,7 +4,7 @@ Rules for everyone working on Weave until the deadline: Rishith, Aaditya, Mario,
 
 ## The goal
 
-Win **Flip the Switch** (WeMakeDevs x Switch) with the review room: a person gives a note in team chat, and a producer, an editor and a QC agent turn it into a checked new cut that only a person can approve.
+Win **Flip the Switch** (WeMakeDevs x Switch) with the crew: a person pings an agent in team chat, and script, producer, editor, VFX and QC agents turn it into a checked cut that only a person can approve.
 
 **Submissions close Saturday, Nov 7, 2026 at 10:29 AM PT (11:59 PM IST).**
 
@@ -19,8 +19,8 @@ Tick a box and push when it's done, so nobody has to ask.
 Owns `switch/` and the agents' instructions.
 
 - [x] Run the whole loop on Mattermost: v1, `cut the pricing part`, v2, `approve`, final export.
-- [ ] Connect Slack in Console and run the room there. Mattermost is enough for the rules, so if Slack isn't working by the freeze, we ship on Mattermost.
-- [ ] Record one clean screen capture of a full run and give it to Mario, with a person typing the notes and the approval. Start from a clean state (see the end of this file).
+- [x] Connect Slack in Console and run the room there.
+- [x] Run the whole crew on Slack and capture it. The ping, the notes and the approve were typed from Rishith's account on Rishith's instruction, so the video and form must not say a teammate typed them.
 
 ### Aaditya (`aShah2025`): it has to run on someone else's machine
 
@@ -101,7 +101,9 @@ Update this list as things change. It's the honest version of the README.
 
 **Proven:**
 
-- The full loop in a live room on Mattermost, run on Nov 6 with the demo talk and no terminal: note, v1 (54.84 s), `cut the pricing part`, v2 (42.84 s), QC PASS, `approve`, `final.mp4` (1280x720, 3.7 MB) in the thread. Each cut took about two minutes from note to verdict, and the export took 14 s. We also measured v2 ourselves: no pricing words left and the neighbouring lines intact.
+- The five-agent crew on real Slack, in `#crew-review`, on Tears of Steel, Nov 6: ping, shot list, v1 (45 s), VFX v2 (41 s), "the ending feels long" v3 (40 s), "the dissolves look grainy" v4 (40 s), QC PASS on each, `approve`, `final.mp4` (40.0 s, 1280x534) in the thread. We measured the final ourselves.
+- The same loop with three agents on Mattermost, earlier the same day: note, v1 (54.84 s), `cut the pricing part`, v2 (42.84 s), QC PASS, `approve`, `final.mp4`.
+- QC rejecting a cut, in a rehearsal: half size. The editor couldn't fix it, so the producer stopped and asked us.
 - An MP4 goes from the editor to QC byte for byte and plays in chat.
 - The editor and QC take instructions from the producer on `owner-agents`.
 - `npm test` passes.
@@ -109,16 +111,14 @@ Update this list as things change. It's the honest version of the README.
 **Not proven yet:**
 
 - Someone attaching footage in chat.
-- Real footage rather than the demo talk.
-- QC rejecting a bad cut and the editor fixing it. Every verdict so far has been PASS.
+- QC rejecting a bad cut and the editor fixing it on its own.
 - A second person in the room, including the editor and QC refusing their instructions.
-- Slack.
 - A clean clone on another machine.
 
 ## Things that already cost us time
 
 - **For a clean start,** delete `weave.project.json` and `exports/` from your clone, then create a new room. Otherwise the timeline carries over and versions keep counting from the last run.
-- **Always mention the producer:** `@weave-producer approve`. A bare `approve` may never reach it.
+- **Always mention the producer:** `@crew-producer approve`. A bare `approve` may never reach it.
 - **After a Colima restart,** run `docker start switchdash-local-mattermost-mattermost-1`. Its restart policy is `no`.
 - **If Mattermost goes unhealthy or uploads fail,** check free disk first. A full disk turned Docker's disk read-only on us. `colima ssh -- sudo dmesg` shows it, and `colima restart` clears it.
 - **If Console says the local server isn't running,** press **Start**. Relaunching the app doesn't start it.

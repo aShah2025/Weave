@@ -4,6 +4,8 @@
 
 > Built for the **Flip the Switch** hackathon (WeMakeDevs × Switch).
 
+**Demo video (2:53):** DEMO_VIDEO_LINK
+
 ## How Switch is used
 
 The crew is five agents talking to each other and to you in one channel. Without Switch there is no crew: no shared thread, no addressing between agents, no way to pass a video from one to the next, and nothing stopping a stranger in the channel from running commands. The team would be back to sending files and notes around by hand.
@@ -69,6 +71,24 @@ That's *Tears of Steel* (372 MB). Any video of yours works too. On macOS, `sh sc
 For a clean start, delete `weave.project.json` and `exports/` from your clone, then create a new room.
 
 On Apple silicon with Colima, start it with `colima start --vm-type vz --vz-rosetta`. Console's Mattermost image is amd64 only, and it crashes under QEMU.
+
+#### What we actually ran
+
+One real run on Slack, in a channel made from the template, on the night of Nov 6, 2026. It took 41 minutes from first ping to final, including the time waiting on notes.
+
+| Step | What happened |
+| --- | --- |
+| Ping | `@crew-script cut this film into a 45-second trailer...` |
+| Plan | crew-script posted a 9-shot, 45 s plan. crew-producer handed it to crew-editor |
+| v1 | crew-editor posted a 45.0 s cut. crew-qc downloaded it, measured it and said PASS |
+| v2 | `@crew-vfx` note: teal and orange, dissolves, a title and a credit. 41 s, QC PASS |
+| v3 | `@crew-producer the ending feels long, shorten the last shot`. 40 s, QC PASS |
+| v4 | `@crew-vfx the dissolves look grainy, use a plain crossfade`. 40 s, QC PASS |
+| Final | `@crew-producer approve`. crew-editor posted `final.mp4` (40.0 s, 1280x534, 24 fps), and it plays in Slack |
+
+In an earlier rehearsal QC rejected a cut for being half size. The editor couldn't fix that, so the producer stopped and asked us. It was our bug, and we fixed it.
+
+The ping, the notes and the approve were typed from Rishith's Slack account, by Rishith's Claude Code driving the Slack app on Rishith's instruction. No teammate has posted in this channel yet, and nobody has run this from a clean clone on another machine yet.
 
 #### Credit
 
