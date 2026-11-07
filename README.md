@@ -4,9 +4,9 @@
 
 > Built for the **Flip the Switch** hackathon (WeMakeDevs × Switch).
 
-**Demo video (2:53):** DEMO_VIDEO_LINK
+**Demo video (2:53):** https://youtu.be/BdGCNu9Rnro
 
-[![Weave demo video](docs/demo-poster.jpg)](DEMO_VIDEO_LINK)
+[![Weave demo video](docs/demo-poster.jpg)](https://youtu.be/BdGCNu9Rnro)
 
 ## How Switch is used
 

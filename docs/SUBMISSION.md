@@ -14,7 +14,7 @@ Everything for the form. Items in **[brackets]** aren't true yet. Do them, or ch
 
 **GitHub repository:** https://github.com/aShah2025/Weave
 
-**Demo video:** **[YouTube or Loom link, under 3 minutes]**
+**Demo video:** https://youtu.be/BdGCNu9Rnro
 
 **Live demo:** leave blank.
 
