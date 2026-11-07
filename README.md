@@ -44,7 +44,7 @@ The agents edit through [`bin/weave-tool.js`](bin/weave-tool.js), which exposes 
 You need [Switch Console](https://github.com/sandbox-quantum/switch/releases/latest) (which needs Docker), [Claude Code](https://claude.com/claude-code) signed in, Node 22+, `ffmpeg` and [`uv`](https://docs.astral.sh/uv/).
 
 ```bash
-git clone -b review-room https://github.com/aShah2025/Weave && cd Weave
+git clone https://github.com/aShah2025/Weave && cd Weave
 sh scripts/make-demo-footage.sh   # macOS. Or use your own video
 ```
 
@@ -52,6 +52,8 @@ sh scripts/make-demo-footage.sh   # macOS. Or use your own video
 2. In the new room, give the first note: `@weave-producer use the whole talk, no cuts yet`. A preview comes back as v1.
 3. Give another note: `@weave-producer cut the pricing part`. v2 comes back about 10 seconds shorter, checked by QC.
 4. Say `@weave-producer approve`, and the final export lands in the thread.
+
+We haven't run steps 2 to 4 end to end in a live room yet. The cut itself has been checked outside Switch.
 
 To use Slack, connect it in Console under the name `Slack` before step 1, and link your account when the form asks, so the room can add you and the editor and QC will take your instructions. The template picks Slack if it's connected and Mattermost if not. Rooms that already exist stay where they are. We haven't run the room on Slack yet.
 
