@@ -1,13 +1,15 @@
 #!/usr/bin/env node
 // Weave's editing tools as a command, for agents that bring their own model
-// (the review room's editor and QC). Needs no API key.
+// (the crew in the room). Needs no API key.
 //
 //   npm run tool -- list
 //   npm run tool -- remove_range '{"from":28.1,"to":37.7}'
 //   npm run tool -- preview                  renders the next version: exports/v2.mp4
 //   npm run tool -- restore '{"version":1}'  puts an earlier version's timeline back
+//   npm run tool -- final                    renders exports/final.mp4 at full quality
 //
 // The timeline is weave.project.json in the current folder, the file Weave Studio opens.
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { newProject, load, save } from '../src/timeline.js';
@@ -21,6 +23,17 @@ const snapshot = (n) => path.join(EXPORTS, `v${n}.json`);
 
 const fail = (message) => { console.error(message); process.exit(1); };
 
+// Switch caps attachments, so a final over the cap also gets a copy that fits. The full one stays.
+function fileForChat(file, duration) {
+  if (fs.statSync(file).size <= MAX_ATTACHMENT_BYTES) return file;
+  const kbps = Math.floor((MAX_ATTACHMENT_BYTES * 8 * 0.85) / duration / 1000) - 160;
+  const small = file.replace(/\.mp4$/, '-chat.mp4');
+  // -maxrate and -bufsize make it a limit. -b:v alone is only an average, and overshoots on hard footage.
+  execFileSync('ffmpeg', ['-y', '-v', 'error', '-i', file, '-c:v', 'libx264', '-b:v', `${kbps}k`,
+    '-maxrate', `${kbps}k`, '-bufsize', `${kbps}k`, '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '160k', small]);
+  return small;
+}
+
 const [name, arg = '{}'] = process.argv.slice(2);
 if (!name) fail('Usage: weave-tool <tool> [json input]. Run "list" to see the tools.');
 
@@ -28,6 +41,7 @@ if (name === 'list') {
   for (const t of toolDefs) console.log(`${t.name}(${Object.keys(t.input_schema.properties).join(', ')}): ${t.description}`);
   console.log('preview(): Render the next version to exports/vN.mp4 for the room.');
   console.log('restore(version): Put the timeline of an earlier version back.');
+  console.log('final(): Render exports/final.mp4 at full quality and name the file to post in chat.');
   process.exit(0);
 }
 
@@ -67,6 +81,14 @@ if (name === 'preview') {
   if (bytes > MAX_ATTACHMENT_BYTES) fail(`v${version} is ${bytes} bytes, over Switch's ${MAX_ATTACHMENT_BYTES}-byte attachment limit.`);
   save(project, snapshot(version));
   console.log(`PREVIEW v${version} ${output} ${duration}s ${resolution} ${bytes} bytes`);
+  process.exit(0);
+}
+
+if (name === 'final') {
+  const output = path.join(EXPORTS, 'final.mp4');
+  const { duration, resolution } = JSON.parse(await run('render', { output, preview: false }));
+  const post = fileForChat(output, duration);
+  console.log(`FINAL ${post} ${duration}s ${resolution} ${fs.statSync(post).size} bytes`);
   process.exit(0);
 }
 

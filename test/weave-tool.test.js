@@ -59,6 +59,31 @@ test('failures say what went wrong and exit non-zero', () => {
   assert.notEqual(tool('restore', '{"version":99}').status, 0);
 });
 
+test('a final too big for chat gets a copy that fits, and the full one stays', () => {
+  const own = fs.mkdtempSync(path.join(os.tmpdir(), 'weave-final-'));
+  const big = path.join(own, 'big.mp4');
+  // Noise, because a clean test pattern compresses far below the cap at any setting.
+  execFileSync('ffmpeg', ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'testsrc2=size=1920x1080:rate=30:duration=8,noise=alls=100:allf=t',
+    '-f', 'lavfi', '-i', 'sine=frequency=440:duration=8', '-shortest', '-c:v', 'libx264', '-preset', 'ultrafast',
+    '-crf', '4', '-pix_fmt', 'yuv420p', '-c:a', 'aac', big]);
+  const run = (...args) => {
+    const r = spawnSync(process.execPath, [BIN, ...args], { cwd: own, encoding: 'utf8' });
+    assert.equal(r.status, 0, r.stderr);
+    return r.stdout.trim();
+  };
+  run('add_clip', JSON.stringify({ path: big }));
+  assert.match(run('final'), /^FINAL .*final-chat\.mp4 /);
+  const cap = 20 * 1024 * 1024;
+  assert.ok(fs.statSync(path.join(own, 'exports', 'final.mp4')).size > cap, 'the full final has to start over the cap');
+  assert.ok(fs.statSync(path.join(own, 'exports', 'final-chat.mp4')).size <= cap);
+});
+
+test('a final that fits is posted as it is', () => {
+  const out = ok('final');
+  assert.match(out, /^FINAL .*final\.mp4 /);
+  assert.equal(fs.existsSync(path.join(dir, 'exports', 'final-chat.mp4')), false);
+});
+
 test('a review loop that never converges hits a hard stop', () => {
   for (let i = fs.readdirSync(path.join(dir, 'exports')).filter((f) => /^v\d+\.json$/.test(f)).length; i < 12; i++) {
     ok('remove_range', JSON.stringify({ from: 0, to: 0.02 }));

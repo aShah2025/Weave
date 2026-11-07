@@ -1,67 +1,104 @@
 # Weave
 
-**A video review room that lives in your team chat.** You give a note in a thread, like "cut the pricing part". A producer, an editor and a QC agent turn it into a new cut, check that the cut does what you asked, and wait for a person to approve it. There's no editor to learn and no files to send around. The chat is the interface, and [Switch](https://github.com/sandbox-quantum/switch) is what puts the agents in it.
+**A video crew that lives in your team chat.** You ping an agent in a thread, like `@crew-script cut this into a 45-second trailer`. A script agent plans the edit, an editor cuts it, a VFX agent does the look, QC checks every version, and a producer keeps it moving until a person approves. There's no editor to learn and no files to send around. The chat is the interface, and [Switch](https://github.com/sandbox-quantum/switch) is what puts the crew in it.
 
 > Built for the **Flip the Switch** hackathon (WeMakeDevs × Switch).
 
+**Demo video (2:53):** https://youtu.be/BdGCNu9Rnro
+
+[![Weave demo video](docs/demo-poster.jpg)](https://youtu.be/BdGCNu9Rnro)
+
 ## How Switch is used
 
-The review room is agents talking to each other and to you in one room. Without Switch there is no room: no shared thread, no addressing between agents, no way to pass a video from one to the next. The team would be back to sending files and notes around by hand.
+The crew is five agents talking to each other and to you in one channel. Without Switch there is no crew: no shared thread, no addressing between agents, no way to pass a video from one to the next, and nothing stopping a stranger in the channel from running commands. The team would be back to sending files and notes around by hand.
 
-### The review room
+### The crew
 
-A video gets made in review: someone gives a note, someone re-cuts, someone checks it, and a person signs off. The review room runs that loop in one chat thread, with agents in every seat except the last.
+A video gets made in review: someone plans it, someone cuts it, someone makes it look right, someone checks it, and a person signs off. Weave runs that loop in one chat thread, with agents in every seat except the last.
 
 ```
- You              @weave-producer cut the pricing part
-                     │
- weave-producer   restates the note, keeps the list of open notes
-                     │  @weave-editor, one instruction
- weave-editor     finds the words with transcribe, cuts in the pauses, renders v2
-                     │  @weave-qc, with v2.mp4 attached
- weave-qc         downloads v2 and measures it. Is the pricing part really gone?
-                     │  @weave-producer, PASS or REJECT
- weave-producer   "v2 passed. Approve it, or give me another note."
-                     │
- You              @weave-producer approve
-                     │
- weave-editor     posts the final export. Only a person can approve.
+ You            @crew-script cut this into a 45-second trailer
+                   │
+ crew-script    reads the transcript, looks at frames, posts a shot list
+                   │  @crew-producer
+ crew-producer  keeps the list of open notes, hands the plan on
+                   │  @crew-editor
+ crew-editor    cuts the shots with Weave's tools, renders v1
+                   │  @crew-qc, with v1.mp4 attached
+ crew-qc        downloads v1 and measures it. Does it match the note?
+                   │  @crew-producer, PASS or REJECT
+ crew-producer  "v1 passed. Approve it, or give me another note."
+                   │
+ You            @crew-vfx teal and orange, dissolves, a title at the start
+                   │
+ crew-vfx       grades it and adds the titles, renders v2, and QC checks it
+                   │
+ You            @crew-producer approve
+                   │
+ crew-editor    posts the final. Only a person can approve.
 ```
 
-| Switch feature | What the room does with it |
+| Switch feature | What the crew does with it |
 | --- | --- |
-| Templates | [`switch/weave-room.template.yaml`](switch/weave-room.template.yaml) creates all three agents and the room in one step |
-| Managed agents | Each agent runs on your coding agent's own login, in its own folder, so the room needs no API key and no registration key |
+| Templates | [`switch/weave-room.template.yaml`](switch/weave-room.template.yaml) creates all five agents and the channel in one step |
+| Managed agents | Each agent is Claude Code on your own login, in its own folder, so the crew needs no API key and no registration key |
 | Agents addressing agents | The whole workflow is agents @mentioning each other in a thread that people can read and step into |
 | Attachments | Previews move between agents with `send_attachment` and `download_attachment`, so QC measures the file that actually landed in the room |
-| Addressing policies | People can reach the producer. The editor and QC can run shell commands, so they only take instructions from you and your own agents |
-| Bridges | The room is mirrored to the chat app you connect. We tested it in Console's built-in chat |
+| Addressing policies | Anyone in the channel can reach the producer. The script, editor, VFX and QC agents can run shell commands, so they only take instructions from you and your own agents |
+| Bridges | The room is mirrored to the chat app you connect |
 
 The agents edit through [`bin/weave-tool.js`](bin/weave-tool.js), which exposes Weave's editing tools as a command. It numbers each preview, won't post an unchanged cut as a new version, can restore an earlier version, and stops at 12 versions, because Switch doesn't limit how often agents can address each other.
 
-#### Run the review room
+#### How the channel is set up
+
+The template creates one channel, `<team>-review`, with the five agents and you in it. Invite your teammates to it. Connect Slack in Console under the name `Slack` before you use the template, and link your account when the form asks, so the room can add you. The template picks Slack if it's connected and Mattermost if not. Rooms that already exist stay where they are.
+
+#### Run the crew
 
 You need [Switch Console](https://github.com/sandbox-quantum/switch/releases/latest) (which needs Docker), [Claude Code](https://claude.com/claude-code) signed in, Node 22+, `ffmpeg` and [`uv`](https://docs.astral.sh/uv/).
 
 ```bash
 git clone https://github.com/aShah2025/Weave && cd Weave
-sh scripts/make-demo-footage.sh   # macOS. Or use your own video
+mkdir -p demo/footage
+curl -L -o demo/footage/tears-of-steel.mov http://ftp.nluug.nl/pub/graphics/blender/demo/movies/ToS/tears_of_steel_720p.mov
 ```
 
-1. In Console, open **Templates**, import `switch/weave-room.template.yaml`, and use it. Set **Weave folder** to your clone and **Footage** to `demo/footage/talk.mp4` in it, both as absolute paths.
-2. In the new room, give the first note: `@weave-producer use the whole talk, no cuts yet`. A preview comes back as v1.
-3. Give another note: `@weave-producer cut the pricing part`. v2 comes back about 12 seconds shorter, checked by QC.
-4. Say `@weave-producer approve`, and the final export lands in the thread.
+That's *Tears of Steel* (372 MB). Any video of yours works too. On macOS, `sh scripts/make-demo-footage.sh` makes a small talk to cut instead.
 
-We ran these steps in a live room on Console's built-in chat, with the demo talk. v1 came back at 54.84 s and v2 at 42.84 s with the pricing part gone, each about two minutes after the note. The final export landed 14 seconds after approval.
+1. In Console, open **Templates**, import `switch/weave-room.template.yaml`, and use it. Set **team** to `crew`, **Weave folder** to your clone, and **Footage** to the video, both as absolute paths.
+2. In the new channel, ping the script agent: `@crew-script cut this into a 45-second trailer`. A shot list comes back, the editor cuts it, and QC checks v1.
+3. Ping the VFX agent: `@crew-vfx teal and orange look, dissolves, and a title at the start`. v2 comes back, checked by QC.
+4. Say `@crew-producer approve`, and the final lands in the thread.
 
-To use Slack, connect it in Console under the name `Slack` before step 1, and link your account when the form asks, so the room can add you and the editor and QC will take your instructions. The template picks Slack if it's connected and Mattermost if not. Rooms that already exist stay where they are. We haven't run the room on Slack yet.
+For a clean start, delete `weave.project.json` and `exports/` from your clone, then create a new room.
 
 On Apple silicon with Colima, start it with `colima start --vm-type vz --vz-rosetta`. Console's Mattermost image is amd64 only, and it crashes under QEMU.
 
+#### What we actually ran
+
+One real run on Slack, in a channel made from the template, on the night of Nov 6, 2026. It took 41 minutes from first ping to final, including the time waiting on notes.
+
+| Step | What happened |
+| --- | --- |
+| Ping | `@crew-script cut this film into a 45-second trailer...` |
+| Plan | crew-script posted a 9-shot, 45 s plan. crew-producer handed it to crew-editor |
+| v1 | crew-editor posted a 45.0 s cut. crew-qc downloaded it, measured it and said PASS |
+| v2 | `@crew-vfx` note: teal and orange, dissolves, a title and a credit. 41 s, QC PASS |
+| v3 | `@crew-producer the ending feels long, shorten the last shot`. 40 s, QC PASS |
+| v4 | `@crew-vfx the dissolves look grainy, use a plain crossfade`. 40 s, QC PASS |
+| Final | `@crew-producer approve`. crew-editor posted `final.mp4` (40.0 s, 1280x534, 24 fps), and it plays in Slack |
+
+In an earlier rehearsal QC rejected a cut for being half size. The editor couldn't fix that, so the producer stopped and asked us. It was our bug, and we fixed it.
+
+The ping, the notes and the approve were typed from Rishith's Slack account, by Rishith's Claude Code driving the Slack app on Rishith's instruction. No teammate has posted in this channel yet, and nobody has run this from a clean clone on another machine yet.
+
+#### Credit
+
+*Tears of Steel* is (CC) Blender Foundation | [mango.blender.org](https://mango.blender.org), under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/). We use it as source footage. It isn't part of this repo, and the agents' cut of it is a trailer, not the film.
+
 ## Weave Studio (separate and optional)
 
-The repo also has a manual editor that can join a channel as a single agent. The review room doesn't use it, and it needs its own API key and registration key.
+The repo also has a manual editor that can join a channel as a single agent. The crew doesn't use it, and it needs its own API key and registration key.
 
 ![Weave Studio](docs/studio.jpg)
 
@@ -141,7 +178,7 @@ node bin/weave.js edit "cut the dead air, add a title, make it 9:16" -i talk.mp4
 | Path | Role |
 | --- | --- |
 | [`src/server.js`](src/server.js) | Zero-dep HTTP server: UI, media with range requests, live sync over SSE, exports, and one agent queue shared by the editor and chat |
-| [`switch/weave-room.template.yaml`](switch/weave-room.template.yaml) | The review room: three agents and how they work together |
+| [`switch/weave-room.template.yaml`](switch/weave-room.template.yaml) | The crew: five agents and how they work together |
 | [`bin/weave-tool.js`](bin/weave-tool.js) | The editing tools as a command, for agents that bring their own model |
 | [`src/switch.js`](src/switch.js) | Switch bridge: registration, WebSocket events, replies, media in and out, the approval gate |
 | [`src/agent.js`](src/agent.js) | Claude agent loop (Messages API + tool use, prompt caching, image pruning) |
@@ -158,7 +195,7 @@ npm test
 
 No API key or network is needed. The suite covers:
 
-- **The review room's tool command**: numbered previews, the no-change check, restore, frames as files, and the hard stop at 12 versions.
+- **The crew's tool command**: numbered previews, the no-change check, restore, frames as files, a final that fits in chat, and the hard stop at 12 versions.
 - **Real ffmpeg renders**: silence cut, transitions, grade, ducked music, captions and a 9:16 reframe.
 - **The agent loop**, against a scripted stand-in for the Claude API.
 - **The whole Switch flow**, against a mock Switch server speaking the protocol: registration, WebSocket with ping/pong, ignoring un-addressed messages, importing footage from chat, posting a preview, `status`, then `approve` with the final export uploaded to the room.
