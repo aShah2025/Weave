@@ -7,7 +7,15 @@ cd "$(dirname "$0")/.."
 mkdir -p demo/footage
 say -v Samantha -r 175 -f scripts/demo-talk.txt -o demo/footage/talk.aiff
 D=$(ffprobe -v error -show_entries format=duration -of csv=p=0 demo/footage/talk.aiff)
+# Homebrew's default ffmpeg is built without libfreetype, so drawtext may not exist.
+# Burn in the source time when we can; otherwise make the footage without it.
+VF="null"
+if ffmpeg -hide_banner -filters 2>/dev/null | grep -q " drawtext "; then
+  VF="drawtext=text='SOURCE %{pts\:hms}':fontsize=48:fontcolor=white:box=1:boxcolor=black@0.5:boxborderw=12:x=40:y=40"
+else
+  echo "Note: this ffmpeg has no drawtext filter, so the source time is not burned into the picture." >&2
+fi
 ffmpeg -y -v error -f lavfi -i "gradients=size=1280x720:rate=30:speed=0.02:duration=$D" -i demo/footage/talk.aiff \
-  -vf "drawtext=text='SOURCE %{pts\:hms}':fontsize=48:fontcolor=white:box=1:boxcolor=black@0.5:boxborderw=12:x=40:y=40" \
+  -vf "$VF" \
   -c:v libx264 -preset veryfast -crf 23 -pix_fmt yuv420p -c:a aac -b:a 160k -shortest demo/footage/talk.mp4
 echo "demo/footage/talk.mp4"
