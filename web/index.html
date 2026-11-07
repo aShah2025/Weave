@@ -18,6 +18,7 @@
       <span class="sep"></span>
       <select id="aspectSel" title="Aspect ratio"></select>
       <span id="saveState" class="muted small"></span>
+      <span id="taskState" class="task-state" hidden></span>
     </div>
     <div class="top-right">
       <button class="pill" id="switchPill" title="Switch: Slack / Discord / Teams"><span class="dot"></span><span class="lbl">Switch</span></button>
@@ -47,6 +48,11 @@
       </section>
       <section data-pane="text" class="pane">
         <div class="pane-head"><h3>Text</h3></div>
+        <div class="auto-cc">
+          <div class="auto-cc-head"><i data-icon="cc"></i><b>Auto captions</b><span class="muted small">from speech, runs locally</span></div>
+          <div class="seg" id="ccStyle"><button data-v="clean" class="on">Clean</button><button data-v="bold">Bold</button><button data-v="boxed">Boxed</button></div>
+          <button class="btn sm primary" id="ccGo"><i data-icon="sparkle"></i>Generate captions</button>
+        </div>
         <div class="text-presets" id="textPresets"></div>
       </section>
       <section data-pane="transitions" class="pane">
@@ -119,6 +125,9 @@
         <button class="icon-btn" id="dupBtn" title="Duplicate (⌘D)" data-icon="copy"></button>
         <span class="sep"></span>
         <button class="icon-btn toggle active" id="snapBtn" title="Snapping (N)" data-icon="magnet"></button>
+        <span class="sep"></span>
+        <button class="btn sm ghost quick" id="silenceBtn" title="Cut every pause on the timeline (no AI key needed)"><i data-icon="wand"></i>Remove silences</button>
+        <button class="btn sm ghost quick" id="captionBtn" title="Transcribe speech into timed captions"><i data-icon="cc"></i>Auto captions</button>
       </div>
       <div class="tool-group">
         <span class="muted small" id="selInfo"></span>
@@ -161,6 +170,7 @@
         <div class="field"><label>Resolution</label><div id="expRes" class="ro"></div></div>
         <div class="field"><label>Quality</label><select id="expQuality"><option value="medium">Good (small file)</option><option value="high" selected>High</option><option value="max">Maximum</option></select></div>
       </div>
+      <label class="check"><input type="checkbox" id="expNormalize"> Normalize loudness to −14 LUFS <span class="muted small">(YouTube / TikTok / Spotify standard)</span></label>
       <div class="progress" id="expProgress" hidden><div class="bar"></div><span></span></div>
       <div id="expResult"></div>
     </div>

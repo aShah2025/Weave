@@ -68,9 +68,20 @@ export async function detectScenes(file, threshold = 0.3) {
 }
 
 // Local speech-to-text, for notes that name a topic ("cut the pricing part"). Needs `uv` on PATH.
+// Cached per file version, so captions and repeated agent calls don't re-run Whisper.
 export async function transcribe(file) {
-  const { stdout } = await exec('uv', ['run', '--quiet', path.join(HERE, '..', 'scripts', 'transcribe.py'), file], { maxBuffer: 64 * 1024 * 1024 });
-  return JSON.parse(stdout);
+  const out = path.join(CACHE, `transcript-${fileKey(file)}.json`);
+  if (fs.existsSync(out)) return JSON.parse(fs.readFileSync(out, 'utf8'));
+  let stdout;
+  try {
+    ({ stdout } = await exec('uv', ['run', '--quiet', path.join(HERE, '..', 'scripts', 'transcribe.py'), file], { maxBuffer: 64 * 1024 * 1024 }));
+  } catch (e) {
+    if (e.code === 'ENOENT') throw new Error('Transcription needs `uv` (https://docs.astral.sh/uv/) on PATH');
+    throw e;
+  }
+  const segments = JSON.parse(stdout);
+  fs.writeFileSync(out, JSON.stringify(segments));
+  return segments;
 }
 
 // Integrated loudness and peak, so the agent can level audio.
@@ -199,6 +210,22 @@ export function colorFilters(c) {
   return f;
 }
 
+// Per-clip zoom / pan / rotate, applied after the clip is fitted to the W x H canvas.
+// Mirrors the CSS transform the editor uses for live preview (web/js/player.js).
+export function transformFilters(t, W, H, background = '#000000') {
+  if (!t) return [];
+  const f = [];
+  const bg = (background || '#000000').replace('#', '0x');
+  if (t.rotate) f.push(`rotate=${(t.rotate * Math.PI / 180).toFixed(5)}:ow=${W}:oh=${H}:fillcolor=${bg}`);
+  const z = Math.max(1, t.zoom || 1);
+  if (z > 1.0001) {
+    const sw = Math.round((W * z) / 2) * 2, sh = Math.round((H * z) / 2) * 2;
+    const x = Math.max(-1, Math.min(1, t.x || 0)), y = Math.max(-1, Math.min(1, t.y || 0));
+    f.push(`scale=${sw}:${sh}`, `crop=${W}:${H}:${Math.round(((sw - W) / 2) * (1 + x))}:${Math.round(((sh - H) / 2) * (1 + y))}`);
+  }
+  return f;
+}
+
 /**
  * Render the whole project with one ffmpeg process.
  * Graph: per-clip trim → speed → color → scale/pad|crop → fades,
@@ -228,7 +255,7 @@ export async function render(project, output, { preview = false, quality = 'high
     const d = clipDuration(c);
     const v = [`trim=start=${f3(c.start)}:end=${f3(c.end)}`, `setpts=(PTS-STARTPTS)/${c.speed}`];
     if (c.flip) v.push('hflip');
-    v.push(...colorFilters(c), fit, 'setsar=1', `fps=${fps}`, 'format=yuv420p', 'settb=AVTB');
+    v.push(...colorFilters(c), fit, ...transformFilters(c.transform, W, H, project.background), 'setsar=1', `fps=${fps}`, 'format=yuv420p', 'settb=AVTB');
     if (c.fadeIn) v.push(`fade=t=in:st=0:d=${c.fadeIn}`);
     if (c.fadeOut) v.push(`fade=t=out:st=${f3(Math.max(0, d - c.fadeOut))}:d=${c.fadeOut}`);
     filters.push(`[${n}:v]${v.join(',')}[v${i}]`);
@@ -292,7 +319,8 @@ export async function render(project, output, { preview = false, quality = 'high
       aCur = 'amix';
     }
   }
-  filters.push(`[${aCur}]alimiter=limit=0.95:level=false[aout]`);
+  // Optional loudness normalization to the streaming standard (-14 LUFS), then a safety limiter.
+  filters.push(`[${aCur}]${project.normalize ? 'loudnorm=I=-14:TP=-1.5:LRA=11,aresample=48000,' : ''}alimiter=limit=0.95:level=false[aout]`);
 
   // Text overlays (pre-rendered PNGs).
   const mediaCount = inputs.length;
@@ -328,6 +356,16 @@ export async function render(project, output, { preview = false, quality = 'high
     p.on('error', reject);
     p.on('close', (code) => (code === 0 ? resolve() : reject(new Error(signal?.aborted ? 'Render cancelled' : `ffmpeg render failed:\n${err.slice(-2000)}`))));
   });
+  // Single-pass loudnorm undershoots on speech with pauses. Measure the result and,
+  // if it's off by more than 0.5 LU, correct the gain with an audio-only pass (video is copied).
+  if (project.normalize && !preview) {
+    const { integrated_lufs: got } = await loudness(output);
+    if (got !== null && Math.abs(got + 14) > 0.5) {
+      const tmp = `${output}.norm.mp4`;
+      await run('ffmpeg', ['-y', '-v', 'error', '-i', output, '-map', '0', '-c:v', 'copy', '-af', `volume=${(-14 - got).toFixed(2)}dB,alimiter=limit=0.89:level=false`, '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', tmp]);
+      fs.renameSync(tmp, output);
+    }
+  }
   onProgress?.(1);
   return { output, duration: +total.toFixed(2), resolution: `${W}x${H}` };
 }

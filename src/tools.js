@@ -4,6 +4,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import * as T from './timeline.js';
 import * as F from './ffmpeg.js';
+import * as O from './ops.js';
 
 const num = (description) => ({ type: 'number', description });
 const str = (description) => ({ type: 'string', description });
@@ -20,7 +21,10 @@ export const toolDefs = [
   { name: 'measure_loudness', description: 'Measure integrated loudness (LUFS) and true peak of a file, to level clip volumes.', input_schema: obj({ path: str('Media file path') }, ['path']) },
   { name: 'view_frames', description: 'Look at still frames from a source file. Returns images. Use to understand content, pick shots, and verify renders.', input_schema: obj({ path: str('Media file path (a source, or a rendered output)'), times: { type: 'array', items: { type: 'number' }, description: 'Timestamps in seconds (max 8)' } }, ['path', 'times']) },
   { name: 'get_timeline', description: 'Return the current timeline: video clips (source + timeline ranges, color, transitions), music track, and text overlays.', input_schema: obj({}) },
-  { name: 'set_project', description: 'Project settings: aspect ratio preset (16:9, 9:16 for TikTok/Reels/Shorts, 1:1, 4:5, 21:9), fit (fit = letterbox, fill = crop to fill), fps, name, background color.', input_schema: obj({ aspect: { type: 'string', enum: Object.keys(T.ASPECTS) }, fit: { type: 'string', enum: ['fit', 'fill'] }, fps: num('Frames per second'), name: str('Project name'), background: str('#rrggbb letterbox color') }) },
+  { name: 'set_project', description: 'Project settings: aspect ratio preset (16:9, 9:16 for TikTok/Reels/Shorts, 1:1, 4:5, 21:9), fit (fit = letterbox, fill = crop to fill), fps, name, background color.', input_schema: obj({ aspect: { type: 'string', enum: Object.keys(T.ASPECTS) }, fit: { type: 'string', enum: ['fit', 'fill'] }, fps: num('Frames per second'), name: str('Project name'), background: str('#rrggbb letterbox color'), normalize_audio: bool('Normalize the mix to -14 LUFS on export (streaming standard)') }) },
+  { name: 'set_transform', description: 'Punch in / reframe a clip (or "all"): zoom 1-4 (1 = none), x / y pan the zoomed frame from -1 (left/top) to 1 (right/bottom), rotate in degrees. Great for reframing 16:9 footage to 9:16.', input_schema: obj({ clip_id: str('Clip id or "all"'), zoom: num('1..4'), x: num('-1..1'), y: num('-1..1'), rotate: num('Degrees') }, ['clip_id']) },
+  { name: 'remove_silences', description: 'One step: detect and cut every pause longer than min_duration across the whole timeline, keeping `pad` seconds of air around speech. Ripples. Faster than detect_silence + remove_ranges.', input_schema: obj({ noise_db: num('Silence threshold dB, default -35'), min_duration: num('Shortest pause to cut, default 0.6s'), pad: num('Air kept on each side, default 0.15s') }) },
+  { name: 'auto_captions', description: 'Transcribe the speech on the timeline and add timed captions (replaces earlier auto captions). style: clean (white outlined), bold (big yellow, social-style), boxed.', input_schema: obj({ style: { type: 'string', enum: ['clean', 'bold', 'boxed'] }, max_words: num('Words per caption, default 6'), position: { type: 'string', enum: ['top', 'center', 'bottom'] } }) },
   { name: 'add_clip', description: 'Append (or insert at index) a range of a source video/image to the main video track.', input_schema: obj({ path: str('Source file'), start: num('Source start seconds (default 0)'), end: num('Source end seconds (default end of file)'), index: num('Optional insert position') }, ['path']) },
   { name: 'trim_clip', description: 'Change the source in/out points of a clip.', input_schema: obj({ clip_id: clipId, start: num('New source start'), end: num('New source end') }, ['clip_id']) },
   { name: 'split_clip', description: 'Split a clip into two at a SOURCE time.', input_schema: obj({ clip_id: clipId, at: num('Source seconds') }, ['clip_id', 'at']) },
@@ -83,13 +87,34 @@ export function createToolbox(project, { cwd = process.cwd(), exportsDir = path.
       return { __images: imgs };
     },
     get_timeline: () => T.describe(project),
-    set_project: ({ aspect, fit, fps, name, background }) => {
+    set_project: ({ aspect, fit, fps, name, background, normalize_audio }) => {
       if (aspect) [project.width, project.height] = T.ASPECTS[aspect];
       if (fit) project.fit = fit;
       if (fps) project.fps = clamp(Math.round(fps), 12, 60);
       if (name) project.name = name;
       if (background) project.background = background;
+      if (normalize_audio !== undefined) project.normalize = !!normalize_audio;
       return changed();
+    },
+    set_transform: ({ clip_id, zoom, x, y, rotate }) => {
+      const targets = clip_id === 'all' ? project.clips : [T.findClip(project, clip_id)];
+      for (const c of targets) {
+        const t = { ...T.defaultTransform(), ...c.transform };
+        if (zoom !== undefined) t.zoom = clamp(zoom, 1, 4);
+        if (x !== undefined) t.x = clamp(x, -1, 1);
+        if (y !== undefined) t.y = clamp(y, -1, 1);
+        if (rotate !== undefined) t.rotate = clamp(rotate, -180, 180);
+        c.transform = t;
+      }
+      return changed();
+    },
+    remove_silences: async ({ noise_db, min_duration, pad }) => {
+      const r = await O.removeSilences(project, { noiseDb: noise_db, minDuration: min_duration, pad });
+      return { ...r, timeline: changed() };
+    },
+    auto_captions: async ({ style, max_words, position }) => {
+      const r = await O.autoCaptions(project, { style, maxWords: max_words, position });
+      return { ...r, timeline: changed() };
     },
     add_clip: async ({ path: p, start, end, index }) => {
       const file = abs(p);

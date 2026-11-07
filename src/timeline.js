@@ -20,11 +20,15 @@ export function migrate(p) {
     p.version = 2; p.name ??= 'Untitled'; p.fit ??= 'fit'; p.background ??= '#000000';
     p.media ??= []; p.audio ??= []; p.texts ??= [];
   }
-  for (const c of p.clips) { c.color ??= defaultColor(); c.transition ??= null; c.flip ??= false; c.fadeIn ??= 0; c.fadeOut ??= 0; }
+  for (const c of p.clips) { c.color ??= defaultColor(); c.transform ??= defaultTransform(); c.transition ??= null; c.flip ??= false; c.fadeIn ??= 0; c.fadeOut ??= 0; }
+  p.normalize ??= false;
   return p;
 }
 
 export const defaultColor = () => ({ brightness: 0, contrast: 1, saturation: 1, gamma: 1, temperature: 6500, look: 'none', vignette: false, sharpen: 0 });
+// zoom >= 1 punches in; x / y pan the punched-in frame from -1 (left/top edge) to 1 (right/bottom edge).
+export const defaultTransform = () => ({ zoom: 1, x: 0, y: 0, rotate: 0 });
+export const isDefaultTransform = (t) => !t || (t.zoom === 1 && !t.x && !t.y && !t.rotate);
 
 export const clipDuration = (c) => (c.end - c.start) / c.speed;
 
@@ -78,7 +82,7 @@ export function addClip(p, { src, start, end, probe, index }) {
   if (!probe.hasVideo) throw new Error('This file has no video stream; use add_music for audio files.');
   const clip = {
     id: `c${p.nextId++}`, src, start, end, speed: 1, volume: 1, hasAudio: probe.hasAudio,
-    fadeIn: 0, fadeOut: 0, transition: null, flip: false, color: defaultColor(),
+    fadeIn: 0, fadeOut: 0, transition: null, flip: false, color: defaultColor(), transform: defaultTransform(),
   };
   if (p.clips.length === 0 && probe.width && p.media.length <= 1) { p.width = even(probe.width); p.height = even(probe.height); }
   p.clips.splice(index ?? p.clips.length, 0, clip);
@@ -166,13 +170,14 @@ export function describe(p) {
     if (c.fadeOut) row.fadeOut = c.fadeOut;
     if (c.transition) row.transition = c.transition;
     if (c.flip) row.flip = true;
+    if (!isDefaultTransform(c.transform)) row.transform = c.transform;
     const d = defaultColor();
     const color = Object.fromEntries(Object.entries(c.color || {}).filter(([k, v]) => d[k] !== v));
     if (Object.keys(color).length) row.color = color;
     return row;
   });
   return {
-    resolution: `${p.width}x${p.height}`, fps: p.fps, fit: p.fit,
+    resolution: `${p.width}x${p.height}`, fps: p.fps, fit: p.fit, normalize_audio: !!p.normalize,
     total_duration: r2(totalDuration(p)), clips,
     audio: p.audio.map((a) => ({ ...a, src_range: [r2(a.start), r2(a.end)], timeline_range: [r2(a.at), r2(a.at + a.end - a.start)] })),
     texts: p.texts,

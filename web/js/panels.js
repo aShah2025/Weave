@@ -35,6 +35,18 @@ function mediaCard(m) {
     !m.ready && !m.error ? h('div', { class: 'spin' }, 'processing…') : null,
     m.error ? h('div', { class: 'spin', style: { color: 'var(--danger)' } }, 'failed') : null,
   );
+  // Hover-scrub: sweep the pointer across the card to skim the footage.
+  if (m.thumbs && m.thumbs.count > 1) {
+    const bar = h('div', { class: 'scrub' });
+    card.addEventListener('pointermove', (e) => {
+      const r = card.getBoundingClientRect(), f = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+      const idx = Math.min(m.thumbs.count - 1, Math.floor(f * m.thumbs.count));
+      thumb.style.backgroundPosition = `${(idx / (m.thumbs.count - 1)) * 100}% 0`;
+      bar.style.width = `${f * 100}%`;
+      if (!bar.isConnected) card.append(bar);
+    });
+    card.addEventListener('pointerleave', () => { thumb.style.backgroundPosition = `${(Math.min(2, m.thumbs.count - 1) / (m.thumbs.count - 1)) * 100}% 0`; bar.remove(); });
+  }
   card.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/weave-media', m.id); e.dataTransfer.effectAllowed = 'copy'; });
   card.addEventListener('dblclick', () => addMediaToTimeline(m));
   return card;
@@ -199,11 +211,32 @@ export function renderSwitch() {
   );
 }
 
+// ---------- one-click operations (no AI key needed) ----------
+let ccStyle = 'clean';
+for (const b of $$('#ccStyle button')) b.onclick = () => { ccStyle = b.dataset.v; $$('#ccStyle button').forEach((x) => x.classList.toggle('on', x === b)); };
+async function runOp(btn, path, body, done) {
+  if (!S.project.clips.length) return toast('Add something to the timeline first');
+  pause();
+  btn.classList.add('running');
+  btn.disabled = true;
+  try { done(await api(path, { method: 'POST', body })); }
+  catch (e) { toast(e.message, 'err'); }
+  finally { btn.classList.remove('running'); btn.disabled = false; }
+}
+$('#silenceBtn').onclick = () => runOp($('#silenceBtn'), '/api/ops/silences', { minDuration: 0.6, pad: 0.15 },
+  (r) => toast(r.removed_spans ? `Removed ${r.removed_spans} pause${r.removed_spans > 1 ? 's' : ''} · ${r.removed_seconds}s shorter` : 'No pauses long enough to cut', 'ok'));
+const captions = (btn) => runOp(btn, '/api/ops/captions', { style: ccStyle }, (r) => toast(`Added ${r.captions} captions`, 'ok'));
+$('#captionBtn').onclick = () => captions($('#captionBtn'));
+$('#ccGo').onclick = () => captions($('#ccGo'));
+export function onTask({ label }) { const el = $('#taskState'); el.hidden = !label; el.textContent = label || ''; }
+
 // ---------- export dialog ----------
 const expModal = $('#exportModal');
+$('#expNormalize').onchange = (e) => commit((p) => (p.normalize = e.target.checked));
 export function openExport() {
   if (!S.project.clips.length) return toast('Add something to the timeline first');
   pause();
+  $('#expNormalize').checked = !!S.project.normalize;
   $('#expName').value = S.project.name || 'weave';
   $('#expRes').textContent = `${S.project.width}×${S.project.height} · ${S.project.fps} fps · ${dur(total())}`;
   $('#expResult').replaceChildren();

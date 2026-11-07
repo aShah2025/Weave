@@ -8,6 +8,7 @@ import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import * as T from './timeline.js';
 import * as F from './ffmpeg.js';
+import * as O from './ops.js';
 import { runAgent, DEFAULT_MODEL } from './agent.js';
 import { SwitchBridge } from './switch.js';
 
@@ -243,6 +244,17 @@ export function startServer({ dir = process.cwd(), port = 4321, host = '127.0.0.
         const opts = await body(req);
         studio.export(opts).catch((e) => studio.broadcast('render', { label: 'export', error: e.message }));
         return json(res, 202, { ok: true });
+      }
+      if ((m = p.match(/^\/api\/ops\/(silences|captions)$/)) && req.method === 'POST') {
+        const opts = await body(req);
+        if (!studio.project.clips.length) return json(res, 400, { error: 'The timeline is empty' });
+        studio.broadcast('checkpoint', { project: structuredClone(studio.project), label: m[1] });
+        studio.broadcast('task', { label: m[1] === 'silences' ? 'Removing silences…' : 'Transcribing speech…' });
+        try {
+          const r = m[1] === 'silences' ? await O.removeSilences(studio.project, opts) : await O.autoCaptions(studio.project, opts);
+          studio.changed('ops');
+          return json(res, 200, r);
+        } finally { studio.broadcast('task', { label: null }); }
       }
       if (p === '/api/export/cancel' && req.method === 'POST') { studio.exportAbort?.abort(); return json(res, 200, { ok: true }); }
       if (p === '/api/agent' && req.method === 'POST') {
